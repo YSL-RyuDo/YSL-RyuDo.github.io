@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<!--
+	Hyperspace by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html lang="ko">
+	<head>
+		<title>UML 1강: UML이란? | YSL RyuDo</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="description" content="UML이 무엇인지 정리하는 임시 1강 노트입니다." />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../../../assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<header id="header">
+				<a href="../../" class="title">YSL RyuDo</a>
+				<nav>
+					<ul>
+						<li><a href="../../#blog">Blog</a></li>
+						<li><a href="../../../en/blog/uml/">EN</a></li>
+					</ul>
+				</nav>
+			</header>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Main -->
+					<section id="main" class="wrapper style2-alt article-page">
+						<div class="inner">
+							<p class="eyebrow">Technical Blog / UML</p>
+							<h1 class="major">UML 1강: UML이란?</h1>
+							<p class="status-pill">Temporary Draft</p>
+							<div class="article-placeholder">
+								<!-- UML article content starts here -->
+								<h2>한 줄 요약</h2>
+								<p>UML은 소프트웨어 구조와 동작을 그림으로 표현하기 위한 표준 모델링 언어입니다. 코드를 작성하기 전에 설계를 공유하거나, 이미 만든 시스템을 설명할 때 사용합니다.</p>
+
+								<h2>UML이 필요한 이유</h2>
+								<p>게임 서버나 네트워크 시스템은 세션, 패킷, 매칭, 룸, DB 같은 요소가 서로 얽히기 쉽습니다. UML을 사용하면 이런 관계를 글보다 빠르게 파악할 수 있고, 팀원과 같은 그림을 보며 설계를 이야기할 수 있습니다.</p>
+
+								<h2>UML은 코드가 아니라 설계 언어</h2>
+								<p>UML은 C++이나 C#처럼 실행되는 언어가 아닙니다. 대신 클래스의 관계, 객체 간 메시지 흐름, 상태 변화 같은 내용을 시각적으로 정리합니다. 즉, UML의 목적은 프로그램을 실행하는 것이 아니라 설계를 이해하기 쉽게 만드는 것입니다.</p>
+
+								<h2>자주 쓰는 다이어그램</h2>
+								<ul>
+									<li><strong>Class Diagram</strong>: 클래스, 필드, 메서드, 상속/의존 관계를 표현합니다.</li>
+									<li><strong>Sequence Diagram</strong>: 클라이언트, 서버, DB 같은 객체들이 어떤 순서로 메시지를 주고받는지 표현합니다.</li>
+									<li><strong>State Diagram</strong>: 캐릭터, 세션, 매칭 큐처럼 상태가 바뀌는 대상을 표현합니다.</li>
+									<li><strong>Use Case Diagram</strong>: 사용자가 시스템으로 무엇을 할 수 있는지 큰 흐름을 표현합니다.</li>
+								</ul>
+
+								<h2>게임 서버 관점에서의 예시</h2>
+								<p>예를 들어 로그인 요청을 설명할 때 Sequence Diagram을 사용하면, Client가 LoginServer에 요청을 보내고, LoginServer가 DB를 조회한 뒤, 결과를 Client에 반환하는 흐름을 한눈에 볼 수 있습니다.</p>
+
+								<h2>이 노트의 방향</h2>
+								<p>이 시리즈는 UML 문법을 전부 외우는 것보다, 포트폴리오와 게임 서버 설계를 설명하는 데 필요한 다이어그램을 실용적으로 정리하는 방향으로 작성할 예정입니다.</p>
+
+								<p><em>임시 메모: 나중에 실제 서버 예시 이미지와 PlantUML 또는 draw.io 기반 다이어그램을 추가할 예정입니다.</em></p>
+								<!-- UML article content ends here -->
+							</div>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Footer -->
+			<footer id="footer" class="wrapper style1-alt">
+				<div class="inner">
+					<ul class="menu">
+						<li>&copy; YSL RyuDo. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+					</ul>
+				</div>
+			</footer>
+
+		<!-- Scripts -->
+			<script src="../../../assets/js/jquery.min.js"></script>
+			<script src="../../../assets/js/jquery.scrollex.min.js"></script>
+			<script src="../../../assets/js/jquery.scrolly.min.js"></script>
+			<script src="../../../assets/js/browser.min.js"></script>
+			<script src="../../../assets/js/breakpoints.min.js"></script>
+			<script src="../../../assets/js/util.js"></script>
+			<script src="../../../assets/js/main.js"></script>
+
+	</body>
+</html>

@@ -4029,12 +4029,40 @@ input, select, textarea {
 		background: rgba(7, 17, 31, 0.2);
 	}
 
+	.features.blog-list section .actions {
+		margin-bottom: 0;
+	}
+
+	.uml-emoji {
+		font-size: 1.25em;
+		line-height: 2em;
+	}
+
 	.status-pill {
 		color: #8de8ff;
 		font-size: 0.72em;
 		font-weight: bold;
 		margin: 0 0 0.9em 0;
 		text-transform: uppercase;
+	}
+
+	.article-page {
+		background-color: #0b1c34;
+	}
+
+	.article-placeholder {
+		background: rgba(7, 17, 31, 0.28);
+		border: solid 1px rgba(141, 232, 255, 0.16);
+		border-radius: 0.35em;
+		padding: 2em;
+	}
+
+	.article-placeholder h2 {
+		margin-top: 1.7em;
+	}
+
+	.article-placeholder h2:first-child {
+		margin-top: 0;
 	}
 
 	.contact-panel .actions.stacked .button {

@@ -4078,10 +4078,42 @@ input, select, textarea {
 
 	.language-landing {
 		background-color: #101a3c;
-		background-image: url("images/intro.svg"), linear-gradient(135deg, rgba(8, 18, 36, 0.95), rgba(28, 36, 92, 0.92) 55%, rgba(63, 34, 116, 0.92));
+		background-image: linear-gradient(rgba(141, 232, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(141, 232, 255, 0.05) 1px, transparent 1px), url("images/intro.svg"), linear-gradient(135deg, rgba(8, 18, 36, 0.96), rgba(28, 36, 92, 0.94) 55%, rgba(63, 34, 116, 0.92));
+		background-position: center center, center center, top right, center center;
+		background-size: 4em 4em, 4em 4em, 100% 100%, cover;
+		min-height: 100vh;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.language-landing:before {
+		background: linear-gradient(90deg, transparent, rgba(141, 232, 255, 0.18), transparent);
+		content: '';
+		display: block;
+		height: 1px;
+		left: 10%;
+		position: absolute;
+		right: 10%;
+		top: 50%;
+	}
+
+	.language-landing:after {
+		border: solid 1px rgba(141, 232, 255, 0.14);
+		content: '';
+		display: block;
+		height: 28em;
+		left: 50%;
+		position: absolute;
+		top: 50%;
+		-moz-transform: translate(-50%, -50%) rotate(45deg);
+		-webkit-transform: translate(-50%, -50%) rotate(45deg);
+		-ms-transform: translate(-50%, -50%) rotate(45deg);
+		transform: translate(-50%, -50%) rotate(45deg);
+		width: 28em;
 	}
 
 	.language-landing > .inner {
+		box-sizing: border-box;
 		display: -moz-flex;
 		display: -webkit-flex;
 		display: -ms-flex;
@@ -4094,7 +4126,37 @@ input, select, textarea {
 		-webkit-justify-content: center;
 		-ms-justify-content: center;
 		justify-content: center;
+		max-width: none;
+		padding: 0 2em;
+		position: relative;
 		text-align: center;
+		width: 100%;
+		z-index: 1;
+	}
+
+	.language-panel {
+		max-width: 42em;
+		width: 100%;
+	}
+
+	.language-panel h1 {
+		font-size: 4.5em;
+		margin-bottom: 0.2em;
+	}
+
+	.language-panel p {
+		margin-left: auto;
+		margin-right: auto;
+		max-width: 24em;
+		overflow-wrap: break-word;
+	}
+
+	.language-tags {
+		-moz-justify-content: center;
+		-webkit-justify-content: center;
+		-ms-justify-content: center;
+		justify-content: center;
+		margin-bottom: 2.25em;
 	}
 
 	.language-actions {
@@ -4103,4 +4165,29 @@ input, select, textarea {
 		-ms-justify-content: center;
 		justify-content: center;
 		margin: 0;
+	}
+
+	.language-actions .button {
+		min-width: 8.5em;
+	}
+
+	@media screen and (max-width: 736px) {
+
+		.language-landing > .inner {
+			padding: 0 1.5em;
+		}
+
+		.language-landing.wrapper.fullscreen {
+			min-height: 100vh;
+			padding: 0;
+		}
+
+		.language-panel h1 {
+			font-size: 2.8em;
+		}
+
+		.language-actions .button {
+			min-width: 7.5em;
+		}
+
 	}

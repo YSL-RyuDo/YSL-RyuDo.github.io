@@ -4,138 +4,384 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YSL-RyuDo | Game Server Programmer</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #0f172a;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.25), transparent 35%),
+        #020617;
       color: #e5e7eb;
-    }
-
-    .container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 24px;
-    }
-
-    h1 {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    p {
-      font-size: 20px;
-      color: #94a3b8;
-      line-height: 1.6;
-    }
-
-    .buttons {
-      margin-top: 32px;
-      display: flex;
-      gap: 16px;
     }
 
     a {
       text-decoration: none;
+      color: inherit;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 20px 10%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(2, 6, 23, 0.75);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
       color: #38bdf8;
-      border: 1px solid #38bdf8;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: bold;
+      letter-spacing: 0.5px;
     }
 
-    a:hover {
-      background: #38bdf8;
-      color: #0f172a;
+    .nav-links a {
+      margin-left: 24px;
+      color: #cbd5e1;
+      font-size: 14px;
     }
 
-    .section {
-      max-width: 720px;
-      margin-top: 48px;
-      text-align: left;
+    .nav-links a:hover {
+      color: #38bdf8;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 10% 80px;
+    }
+
+    .hero-content {
+      max-width: 850px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 999px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 64px;
+      line-height: 1.1;
+      margin: 0;
+      letter-spacing: -2px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      margin-top: 24px;
+      color: #94a3b8;
+      font-size: 20px;
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    .buttons {
+      margin-top: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .btn {
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #0284c7, #7c3aed);
+      color: white;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 36px rgba(124, 58, 237, 0.45);
+    }
+
+    .btn-outline {
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .btn-outline:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    section {
+      padding: 80px 10%;
+    }
+
+    .section-title {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: #94a3b8;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
     }
 
     .card {
-      border: 1px solid #1e293b;
-      border-radius: 12px;
-      padding: 20px;
-      background: #111827;
-      margin-top: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.92));
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(56, 189, 248, 0.55);
+      box-shadow: 0 25px 60px rgba(56, 189, 248, 0.12);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 24px;
+      color: #f8fafc;
+    }
+
+    .card p {
+      color: #94a3b8;
+      line-height: 1.7;
+    }
+
+    .tags {
+      margin-top: 18px;
     }
 
     .tag {
       display: inline-block;
-      background: #1e293b;
-      color: #93c5fd;
-      padding: 4px 8px;
+      margin: 6px 6px 0 0;
+      padding: 6px 10px;
       border-radius: 999px;
+      background: rgba(56, 189, 248, 0.1);
+      color: #7dd3fc;
       font-size: 13px;
-      margin-right: 6px;
-      margin-top: 8px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+    }
+
+    .blog-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .blog-date {
+      color: #64748b;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    footer {
+      padding: 40px 10%;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      color: #64748b;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .navbar {
+        padding: 16px 6%;
+      }
+
+      .nav-links a {
+        margin-left: 12px;
+      }
+
+      .hero {
+        padding: 120px 6% 60px;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+
+      .hero p {
+        font-size: 17px;
+      }
+
+      section {
+        padding: 60px 6%;
+      }
+
+      .blog-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
-<body>
-  <main class="container">
-    <h1>YSL-RyuDo</h1>
-    <p>Game Server / Network Programmer</p>
-    <p>
-      Unity 기반 멀티플레이 FPS와 C++ 게임 서버를 공부하고 있습니다.<br />
-      I am studying C++ game server programming and real-time multiplayer systems.
-    </p>
 
-    <div class="buttons">
+<body>
+  <header class="navbar">
+    <div class="logo">YSL-RyuDo</div>
+    <nav class="nav-links">
       <a href="#projects">Projects</a>
       <a href="#blog">Blog</a>
       <a href="#contact">Contact</a>
-    </div>
+      <a href="#">KR / EN</a>
+    </nav>
+  </header>
 
-    <section id="projects" class="section">
-      <h2>Projects</h2>
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="badge">Game Server / Network Programmer</div>
 
-      <div class="card">
-        <h3>Project Vector</h3>
+        <h1>
+          Building <span class="gradient-text">real-time multiplayer</span><br />
+          game server systems.
+        </h1>
+
         <p>
-          Unity 클라이언트와 C++ TCP 서버를 기반으로 제작 중인 멀티플레이 택티컬 FPS 프로토타입입니다.
+          Unity 기반 멀티플레이 FPS와 C++ TCP 게임 서버를 개발하고 있습니다.
+          주요 관심 분야는 게임 서버 구조, 패킷 설계, 플레이어 동기화,
+          서버 권한 처리, 실시간 멀티플레이 시스템입니다.
         </p>
-        <span class="tag">C++</span>
-        <span class="tag">TCP Server</span>
-        <span class="tag">Unity</span>
-        <span class="tag">Multiplayer</span>
-      </div>
 
-      <div class="card">
-        <h3>Slap Squad</h3>
-        <p>
-          Unity와 C++ Winsock TCP 서버를 활용한 PC 멀티플레이 게임 프로젝트입니다.
-        </p>
-        <span class="tag">Unity</span>
-        <span class="tag">C++</span>
-        <span class="tag">Network</span>
-      </div>
-    </section>
-
-    <section id="blog" class="section">
-      <h2>Technical Blog</h2>
-
-      <div class="card">
-        <h3>C++ TCP 게임 서버를 만들며 배운 것</h3>
-        <p>
-          패킷 설계, 룸 관리, 플레이어 동기화, 서버 권한 구조에 대한 기록을 작성할 예정입니다.
-        </p>
+        <div class="buttons">
+          <a class="btn btn-primary" href="#projects">View Projects</a>
+          <a class="btn btn-outline" href="#blog">Read Blog</a>
+          <a class="btn btn-outline" href="https://github.com/YSL-RyuDo">GitHub</a>
+        </div>
       </div>
     </section>
 
-    <section id="contact" class="section">
-      <h2>Contact</h2>
+    <section id="projects">
+      <h2 class="section-title">Featured Projects</h2>
+      <p class="section-desc">
+        게임 서버, 네트워크, 멀티플레이 시스템 중심의 프로젝트입니다.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Project Vector</h3>
+          <p>
+            Unity 클라이언트와 C++ TCP 서버를 기반으로 제작 중인
+            3vs3 택티컬 FPS 프로토타입입니다. 로그인, 룸 관리,
+            라운드 진행, 플레이어 동기화, 스파이크 설치/해체 로직을 구현했습니다.
+          </p>
+          <div class="tags">
+            <span class="tag">C++</span>
+            <span class="tag">TCP Server</span>
+            <span class="tag">Unity</span>
+            <span class="tag">Multiplayer</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Slap Squad</h3>
+          <p>
+            Unity와 C++ Winsock TCP 서버를 활용한 PC 멀티플레이 게임 프로젝트입니다.
+            서버 구조, 유저 데이터, 방 관리, 위치 동기화 기능을 담당했습니다.
+          </p>
+          <div class="tags">
+            <span class="tag">Unity</span>
+            <span class="tag">C++</span>
+            <span class="tag">Winsock</span>
+            <span class="tag">Networking</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>C2PA Research</h3>
+          <p>
+            게임 이미지 리소스 변형에 따른 C2PA Manifest 보존성과
+            지각 해시 기반 재식별 가능성을 분석한 연구 프로젝트입니다.
+          </p>
+          <div class="tags">
+            <span class="tag">Research</span>
+            <span class="tag">C2PA</span>
+            <span class="tag">Perceptual Hash</span>
+            <span class="tag">Python</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="blog">
+      <h2 class="section-title">Technical Blog</h2>
+      <p class="section-desc">
+        C++, 게임 서버, 네트워크, CS 기초를 공부하며 정리하는 공간입니다.
+      </p>
+
+      <div class="card blog-item">
+        <div>
+          <h3>C++ TCP 게임 서버를 만들며 배운 것</h3>
+          <p>
+            패킷 설계, 세션 관리, 룸 구조, 플레이어 동기화에 대한 기록입니다.
+          </p>
+        </div>
+        <div class="blog-date">Coming Soon</div>
+      </div>
+
+      <div class="card blog-item">
+        <div>
+          <h3>멀티플레이 FPS에서 서버 권한 구조가 중요한 이유</h3>
+          <p>
+            클라이언트 신뢰 문제와 서버 중심 게임 룰 처리에 대한 정리입니다.
+          </p>
+        </div>
+        <div class="blog-date">Coming Soon</div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2 class="section-title">Contact</h2>
+
       <div class="card">
-        <p>GitHub: YSL-RyuDo</p>
+        <h3>GitHub</h3>
+        <p>
+          <a href="https://github.com/YSL-RyuDo" style="color:#38bdf8;">
+            https://github.com/YSL-RyuDo
+          </a>
+        </p>
       </div>
     </section>
   </main>
+
+  <footer>
+    © 2026 YSL-RyuDo. Game Server / Network Programmer Portfolio.
+  </footer>
 </body>
 </html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YSL-RyuDo | Game Server Programmer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 20px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .buttons {
+      margin-top: 32px;
+      display: flex;
+      gap: 16px;
+    }
+
+    a {
+      text-decoration: none;
+      color: #38bdf8;
+      border: 1px solid #38bdf8;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    a:hover {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+
+    .section {
+      max-width: 720px;
+      margin-top: 48px;
+      text-align: left;
+    }
+
+    .card {
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      background: #111827;
+      margin-top: 16px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #1e293b;
+      color: #93c5fd;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin-right: 6px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>YSL-RyuDo</h1>
+    <p>Game Server / Network Programmer</p>
+    <p>
+      Unity 기반 멀티플레이 FPS와 C++ 게임 서버를 공부하고 있습니다.<br />
+      I am studying C++ game server programming and real-time multiplayer systems.
+    </p>
+
+    <div class="buttons">
+      <a href="#projects">Projects</a>
+      <a href="#blog">Blog</a>
+      <a href="#contact">Contact</a>
+    </div>
+
+    <section id="projects" class="section">
+      <h2>Projects</h2>
+
+      <div class="card">
+        <h3>Project Vector</h3>
+        <p>
+          Unity 클라이언트와 C++ TCP 서버를 기반으로 제작 중인 멀티플레이 택티컬 FPS 프로토타입입니다.
+        </p>
+        <span class="tag">C++</span>
+        <span class="tag">TCP Server</span>
+        <span class="tag">Unity</span>
+        <span class="tag">Multiplayer</span>
+      </div>
+
+      <div class="card">
+        <h3>Slap Squad</h3>
+        <p>
+          Unity와 C++ Winsock TCP 서버를 활용한 PC 멀티플레이 게임 프로젝트입니다.
+        </p>
+        <span class="tag">Unity</span>
+        <span class="tag">C++</span>
+        <span class="tag">Network</span>
+      </div>
+    </section>
+
+    <section id="blog" class="section">
+      <h2>Technical Blog</h2>
+
+      <div class="card">
+        <h3>C++ TCP 게임 서버를 만들며 배운 것</h3>
+        <p>
+          패킷 설계, 룸 관리, 플레이어 동기화, 서버 권한 구조에 대한 기록을 작성할 예정입니다.
+        </p>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <h2>Contact</h2>
+      <div class="card">
+        <p>GitHub: YSL-RyuDo</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

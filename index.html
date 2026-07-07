@@ -1,773 +1,209 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YSL-RyuDo Portfolio</title>
-
-  <style>
-    :root {
-      --bg: #050816;
-      --panel: rgba(15, 23, 42, 0.72);
-      --panel-strong: rgba(15, 23, 42, 0.92);
-      --line: rgba(148, 163, 184, 0.18);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --blue: #38bdf8;
-      --purple: #8b5cf6;
-      --pink: #ec4899;
-      --green: #22c55e;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      min-height: 100vh;
-      font-family: Inter, Pretendard, Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.22), transparent 28%),
-        radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.26), transparent 28%),
-        radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.16), transparent 32%),
-        var(--bg);
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: linear-gradient(to bottom, black, transparent 85%);
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .layout {
-      width: min(1180px, calc(100% - 40px));
-      margin: 0 auto;
-    }
-
-    .nav {
-      position: sticky;
-      top: 16px;
-      z-index: 10;
-      margin-top: 16px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(2, 6, 23, 0.68);
-      backdrop-filter: blur(18px);
-      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.32);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 900;
-      letter-spacing: -0.4px;
-    }
-
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--blue), var(--purple), var(--pink));
-      box-shadow: 0 0 28px rgba(56, 189, 248, 0.45);
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .nav-links a {
-      padding: 10px 13px;
-      color: #cbd5e1;
-      font-size: 14px;
-      border-radius: 999px;
-      transition: 0.2s;
-    }
-
-    .nav-links a:hover {
-      color: white;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .lang {
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      color: #7dd3fc !important;
-      background: rgba(56, 189, 248, 0.08);
-    }
-
-    .hero {
-      min-height: calc(100vh - 80px);
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 44px;
-      align-items: center;
-      padding: 92px 0 72px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-      padding: 9px 14px;
-      border: 1px solid rgba(56, 189, 248, 0.28);
-      border-radius: 999px;
-      color: #7dd3fc;
-      background: rgba(56, 189, 248, 0.08);
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.8);
-    }
-
-    .hero h1 {
-      font-size: clamp(48px, 7vw, 86px);
-      line-height: 0.98;
-      letter-spacing: -4px;
-      margin-bottom: 24px;
-    }
-
-    .gradient {
-      background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc, #f472b6);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-
-    .hero-desc {
-      width: min(680px, 100%);
-      color: var(--muted);
-      font-size: 19px;
-      line-height: 1.75;
-      margin-bottom: 34px;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      height: 48px;
-      padding: 0 20px;
-      border-radius: 14px;
-      font-weight: 800;
-      transition: 0.22s;
-    }
-
-    .btn-primary {
-      color: white;
-      background: linear-gradient(135deg, #0284c7, #7c3aed);
-      box-shadow: 0 0 34px rgba(56, 189, 248, 0.28);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 0 46px rgba(139, 92, 246, 0.5);
-    }
-
-    .btn-ghost {
-      color: #dbeafe;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: rgba(15, 23, 42, 0.58);
-    }
-
-    .btn-ghost:hover {
-      transform: translateY(-3px);
-      border-color: rgba(56, 189, 248, 0.55);
-      color: #7dd3fc;
-    }
-
-    .visual {
-      position: relative;
-      min-height: 520px;
-      border: 1px solid var(--line);
-      border-radius: 34px;
-      background:
-        linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(2, 6, 23, 0.9)),
-        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.25), transparent 40%);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.42);
-      overflow: hidden;
-    }
-
-    .visual::before {
-      content: "";
-      position: absolute;
-      inset: -90px;
-      background: conic-gradient(from 180deg, transparent, rgba(56, 189, 248, 0.3), transparent, rgba(139, 92, 246, 0.32), transparent);
-      animation: spin 11s linear infinite;
-      opacity: 0.72;
-    }
-
-    .visual-inner {
-      position: absolute;
-      inset: 1px;
-      border-radius: 33px;
-      background: rgba(2, 6, 23, 0.88);
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .terminal {
-      border: 1px solid rgba(148, 163, 184, 0.16);
-      border-radius: 22px;
-      background: rgba(15, 23, 42, 0.8);
-      overflow: hidden;
-    }
-
-    .terminal-top {
-      height: 44px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 16px;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .circle {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-    }
-
-    .red { background: #fb7185; }
-    .yellow { background: #facc15; }
-    .green { background: #22c55e; }
-
-    .code {
-      padding: 22px;
-      color: #cbd5e1;
-      font-family: Consolas, monospace;
-      font-size: 14px;
-      line-height: 1.8;
-    }
-
-    .blue { color: #38bdf8; }
-    .purple { color: #c084fc; }
-    .comment { color: #64748b; }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .stat {
-      padding: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.7);
-    }
-
-    .stat strong {
-      display: block;
-      font-size: 25px;
-      margin-bottom: 6px;
-    }
-
-    .stat span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    section {
-      padding: 70px 0;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 24px;
-      margin-bottom: 26px;
-    }
-
-    .section-head h2 {
-      font-size: clamp(32px, 4vw, 48px);
-      letter-spacing: -2px;
-    }
-
-    .section-head p {
-      max-width: 520px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-
-    .card {
-      position: relative;
-      padding: 24px;
-      min-height: 250px;
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      background: var(--panel);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-      overflow: hidden;
-      transition: 0.22s;
-    }
-
-    .card::after {
-      content: "";
-      position: absolute;
-      inset: auto -40px -70px auto;
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      background: rgba(56, 189, 248, 0.12);
-      filter: blur(8px);
-    }
-
-    .card:hover {
-      transform: translateY(-7px);
-      border-color: rgba(56, 189, 248, 0.5);
-      box-shadow: 0 30px 90px rgba(56, 189, 248, 0.11);
-    }
-
-    .card-number {
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 900;
-      margin-bottom: 26px;
-    }
-
-    .card h3 {
-      font-size: 24px;
-      margin-bottom: 12px;
-      letter-spacing: -0.8px;
-    }
-
-    .card p {
-      color: var(--muted);
-      line-height: 1.65;
-      margin-bottom: 22px;
-    }
-
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: auto;
-    }
-
-    .tag {
-      padding: 7px 10px;
-      border: 1px solid rgba(56, 189, 248, 0.18);
-      border-radius: 999px;
-      color: #7dd3fc;
-      background: rgba(56, 189, 248, 0.08);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .wide {
-      grid-column: span 2;
-    }
-
-    .blog-list {
-      display: grid;
-      gap: 14px;
-    }
-
-    .blog-row {
-      display: grid;
-      grid-template-columns: 150px 1fr 110px;
-      gap: 18px;
-      align-items: center;
-      padding: 22px;
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: rgba(15, 23, 42, 0.66);
-      transition: 0.2s;
-    }
-
-    .blog-row:hover {
-      transform: translateX(6px);
-      border-color: rgba(139, 92, 246, 0.48);
-      background: rgba(15, 23, 42, 0.86);
-    }
-
-    .category {
-      color: #7dd3fc;
-      font-weight: 900;
-      font-size: 13px;
-    }
-
-    .blog-title {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: -0.6px;
-    }
-
-    .date {
-      color: #64748b;
-      text-align: right;
-      font-size: 13px;
-    }
-
-    .contact {
-      padding: 34px;
-      border: 1px solid rgba(56, 189, 248, 0.28);
-      border-radius: 30px;
-      background:
-        linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(139, 92, 246, 0.12)),
-        rgba(15, 23, 42, 0.74);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-
-    .contact h2 {
-      font-size: clamp(30px, 4vw, 46px);
-      letter-spacing: -1.8px;
-      margin-bottom: 8px;
-    }
-
-    .contact p {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    footer {
-      padding: 34px 0 50px;
-      color: #64748b;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    @media (max-width: 900px) {
-      .hero {
-        grid-template-columns: 1fr;
-      }
-
-      .visual {
-        min-height: 430px;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .wide {
-        grid-column: span 1;
-      }
-
-      .section-head {
-        display: block;
-      }
-
-      .section-head p {
-        margin-top: 12px;
-      }
-
-      .blog-row {
-        grid-template-columns: 1fr;
-      }
-
-      .date {
-        text-align: left;
-      }
-
-      .contact {
-        display: block;
-      }
-
-      .contact .actions {
-        margin-top: 22px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .layout {
-        width: min(100% - 24px, 1180px);
-      }
-
-      .nav {
-        border-radius: 22px;
-        align-items: flex-start;
-      }
-
-      .nav-links {
-        display: none;
-      }
-
-      .hero h1 {
-        letter-spacing: -2px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .visual {
-        min-height: 500px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="layout">
-    <header class="nav">
-      <a class="brand" href="#">
-        <span class="brand-mark"></span>
-        <span>YSL-RyuDo</span>
-      </a>
-
-      <nav class="nav-links">
-        <a href="#projects">Projects</a>
-        <a href="#blog">Blog</a>
-        <a href="#skills">Skills</a>
-        <a href="#contact">Contact</a>
-        <a class="lang" href="#">KR / EN</a>
-      </nav>
-    </header>
-
-    <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">
-            <span class="dot"></span>
-            Portfolio Design Preview
-          </div>
-
-          <h1>
-            Game Server<br />
-            <span class="gradient">Developer</span><br />
-            Portfolio
-          </h1>
-
-          <p class="hero-desc">
-            이 영역은 자기소개 문구가 들어가는 메인 히어로 섹션입니다.
-            지금은 디자인용 더미 텍스트입니다. 나중에 한국어/영어 문구로 교체하면 됩니다.
-          </p>
-
-          <div class="actions">
-            <a class="btn btn-primary" href="#projects">View Projects</a>
-            <a class="btn btn-ghost" href="#blog">Read Blog</a>
-            <a class="btn btn-ghost" href="#">GitHub</a>
-          </div>
-        </div>
-
-        <aside class="visual">
-          <div class="visual-inner">
-            <div class="terminal">
-              <div class="terminal-top">
-                <span class="circle red"></span>
-                <span class="circle yellow"></span>
-                <span class="circle green"></span>
-              </div>
-
-              <div class="code">
-                <div><span class="comment">// portfolio preview</span></div>
-                <div><span class="blue">class</span> <span class="purple">GameServerDeveloper</span> {</div>
-                <div>&nbsp;&nbsp;focus: "C++ / Networking";</div>
-                <div>&nbsp;&nbsp;project: "Multiplayer FPS";</div>
-                <div>&nbsp;&nbsp;blog: "CS Study Notes";</div>
-                <div>};</div>
-              </div>
-            </div>
-
-            <div class="stats">
-              <div class="stat">
-                <strong>01</strong>
-                <span>Main Project</span>
-              </div>
-              <div class="stat">
-                <strong>02</strong>
-                <span>Languages</span>
-              </div>
-              <div class="stat">
-                <strong>03</strong>
-                <span>Blog Areas</span>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section id="projects">
-        <div class="section-head">
-          <h2>Featured Projects</h2>
-          <p>프로젝트 카드 디자인 영역입니다. 썸네일 없이도 카드형으로 깔끔하게 보이게 구성했습니다.</p>
-        </div>
-
-        <div class="grid">
-          <article class="card wide">
-            <div class="card-number">PROJECT 01</div>
-            <h3>Main Project Title</h3>
-            <p>
-              프로젝트 설명이 들어갈 자리입니다. 게임 서버, 네트워크, Unity, C++ 같은 키워드를 넣으면 됩니다.
-            </p>
-            <div class="tags">
-              <span class="tag">C++</span>
-              <span class="tag">TCP</span>
-              <span class="tag">Unity</span>
-              <span class="tag">Multiplayer</span>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-number">PROJECT 02</div>
-            <h3>Sub Project</h3>
-            <p>
-              두 번째 프로젝트 설명 영역입니다. 카드 hover 효과가 적용되어 있습니다.
-            </p>
-            <div class="tags">
-              <span class="tag">C#</span>
-              <span class="tag">Network</span>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-number">PROJECT 03</div>
-            <h3>Research</h3>
-            <p>
-              연구나 논문, 실험 프로젝트를 넣을 수 있는 카드입니다.
-            </p>
-            <div class="tags">
-              <span class="tag">Python</span>
-              <span class="tag">Research</span>
-            </div>
-          </article>
-
-          <article class="card wide">
-            <div class="card-number">PROJECT 04</div>
-            <h3>Portfolio Case Study</h3>
-            <p>
-              프로젝트 회고나 구조 설명 페이지로 연결할 수 있는 큰 카드입니다.
-            </p>
-            <div class="tags">
-              <span class="tag">Architecture</span>
-              <span class="tag">Documentation</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section id="blog">
-        <div class="section-head">
-          <h2>Technical Blog</h2>
-          <p>블로그 글 목록 디자인입니다. 글 제목만 바꾸면 바로 사용할 수 있습니다.</p>
-        </div>
-
-        <div class="blog-list">
-          <a class="blog-row" href="#">
-            <div class="category">C++</div>
-            <div class="blog-title">Blog Post Title Placeholder</div>
-            <div class="date">Coming Soon</div>
-          </a>
-
-          <a class="blog-row" href="#">
-            <div class="category">Network</div>
-            <div class="blog-title">Blog Post Title Placeholder</div>
-            <div class="date">Coming Soon</div>
-          </a>
-
-          <a class="blog-row" href="#">
-            <div class="category">CS</div>
-            <div class="blog-title">Blog Post Title Placeholder</div>
-            <div class="date">Coming Soon</div>
-          </a>
-        </div>
-      </section>
-
-      <section id="skills">
-        <div class="section-head">
-          <h2>Skills</h2>
-          <p>기술 스택을 보여주는 카드 영역입니다.</p>
-        </div>
-
-        <div class="grid">
-          <article class="card">
-            <div class="card-number">LANGUAGE</div>
-            <h3>C++ / C#</h3>
-            <p>프로그래밍 언어 영역입니다.</p>
-          </article>
-
-          <article class="card">
-            <div class="card-number">SERVER</div>
-            <h3>TCP / Socket</h3>
-            <p>서버와 네트워크 기술 영역입니다.</p>
-          </article>
-
-          <article class="card">
-            <div class="card-number">CS</div>
-            <h3>OS / Network / DB</h3>
-            <p>CS 기초 지식 영역입니다.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="contact">
-        <div class="contact">
-          <div>
-            <h2>Let’s build something.</h2>
-            <p>연락처, GitHub, LinkedIn 버튼을 넣는 마지막 영역입니다.</p>
-          </div>
-
-          <div class="actions">
-            <a class="btn btn-primary" href="#">GitHub</a>
-            <a class="btn btn-ghost" href="#">Email</a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      © 2026 YSL-RyuDo. Portfolio Design Draft.
-    </footer>
-  </div>
-</body>
+<!DOCTYPE HTML>
+<!--
+	Hyperspace by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Hyperspace by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Sidebar -->
+			<section id="sidebar">
+				<div class="inner">
+					<nav>
+						<ul>
+							<li><a href="#intro">Welcome</a></li>
+							<li><a href="#one">Who we are</a></li>
+							<li><a href="#two">What we do</a></li>
+							<li><a href="#three">Get in touch</a></li>
+						</ul>
+					</nav>
+				</div>
+			</section>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Intro -->
+					<section id="intro" class="wrapper style1 fullscreen fade-up">
+						<div class="inner">
+							<h1>Hyperspace</h1>
+							<p>Just another fine responsive site template designed by <a href="http://html5up.net">HTML5 UP</a><br />
+							and released for free under the <a href="http://html5up.net/license">Creative Commons</a>.</p>
+							<ul class="actions">
+								<li><a href="#one" class="button scrolly">Learn more</a></li>
+							</ul>
+						</div>
+					</section>
+
+				<!-- One -->
+					<section id="one" class="wrapper style2 spotlights">
+						<section>
+							<a href="#" class="image"><img src="images/pic01.jpg" alt="" data-position="center center" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>Sed ipsum dolor</h2>
+									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
+									<ul class="actions">
+										<li><a href="generic.html" class="button">Learn more</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+						<section>
+							<a href="#" class="image"><img src="images/pic02.jpg" alt="" data-position="top center" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>Feugiat consequat</h2>
+									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
+									<ul class="actions">
+										<li><a href="generic.html" class="button">Learn more</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+						<section>
+							<a href="#" class="image"><img src="images/pic03.jpg" alt="" data-position="25% 25%" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>Ultricies aliquam</h2>
+									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
+									<ul class="actions">
+										<li><a href="generic.html" class="button">Learn more</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+					</section>
+
+				<!-- Two -->
+					<section id="two" class="wrapper style3 fade-up">
+						<div class="inner">
+							<h2>What we do</h2>
+							<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p>
+							<div class="features">
+								<section>
+									<span class="icon solid major fa-code"></span>
+									<h3>Lorem ipsum amet</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-lock"></span>
+									<h3>Aliquam sed nullam</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-cog"></span>
+									<h3>Sed erat ullam corper</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-desktop"></span>
+									<h3>Veroeros quis lorem</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-link"></span>
+									<h3>Urna quis bibendum</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon major fa-gem"></span>
+									<h3>Aliquam urna dapibus</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+							</div>
+							<ul class="actions">
+								<li><a href="generic.html" class="button">Learn more</a></li>
+							</ul>
+						</div>
+					</section>
+
+				<!-- Three -->
+					<section id="three" class="wrapper style1 fade-up">
+						<div class="inner">
+							<h2>Get in touch</h2>
+							<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p>
+							<div class="split style1">
+								<section>
+									<form method="post" action="#">
+										<div class="fields">
+											<div class="field half">
+												<label for="name">Name</label>
+												<input type="text" name="name" id="name" />
+											</div>
+											<div class="field half">
+												<label for="email">Email</label>
+												<input type="text" name="email" id="email" />
+											</div>
+											<div class="field">
+												<label for="message">Message</label>
+												<textarea name="message" id="message" rows="5"></textarea>
+											</div>
+										</div>
+										<ul class="actions">
+											<li><a href="" class="button submit">Send Message</a></li>
+										</ul>
+									</form>
+								</section>
+								<section>
+									<ul class="contact">
+										<li>
+											<h3>Address</h3>
+											<span>12345 Somewhere Road #654<br />
+											Nashville, TN 00000-0000<br />
+											USA</span>
+										</li>
+										<li>
+											<h3>Email</h3>
+											<a href="#">user@untitled.tld</a>
+										</li>
+										<li>
+											<h3>Phone</h3>
+											<span>(000) 000-0000</span>
+										</li>
+										<li>
+											<h3>Social</h3>
+											<ul class="icons">
+												<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
+												<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
+												<li><a href="#" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+												<li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+												<li><a href="#" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
+											</ul>
+										</li>
+									</ul>
+								</section>
+							</div>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Footer -->
+			<footer id="footer" class="wrapper style1-alt">
+				<div class="inner">
+					<ul class="menu">
+						<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+					</ul>
+				</div>
+			</footer>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
 </html>

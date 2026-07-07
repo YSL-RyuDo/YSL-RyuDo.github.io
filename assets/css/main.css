@@ -3900,10 +3900,207 @@ input, select, textarea {
 
 			}
 
-		@media screen and (max-width: 1280px) {
+	@media screen and (max-width: 1280px) {
 
-			#intro {
-				background-attachment: scroll;
-			}
-
+		#intro {
+			background-attachment: scroll;
 		}
+
+	}
+
+/* Portfolio */
+
+	body {
+		background: #07111f;
+	}
+
+	.wrapper.style1 {
+		background-color: #17265d;
+	}
+
+	.wrapper.style1-alt {
+		background-color: #07111f;
+	}
+
+	.wrapper.style2 {
+		background-color: #102c54;
+	}
+
+	.wrapper.style2-alt {
+		background-color: #0b1c34;
+	}
+
+	.wrapper.style3 {
+		background-color: #34206c;
+	}
+
+	#sidebar {
+		background: #07111f;
+	}
+
+	#sidebar nav a:before {
+		background: rgba(255, 255, 255, 0.08);
+	}
+
+	#sidebar nav a:after {
+		background-image: -moz-linear-gradient(to right, #3dd6ff, #8e6dff);
+		background-image: -webkit-linear-gradient(to right, #3dd6ff, #8e6dff);
+		background-image: -ms-linear-gradient(to right, #3dd6ff, #8e6dff);
+		background-image: linear-gradient(to right, #3dd6ff, #8e6dff);
+	}
+
+	@media screen and (max-width: 1280px) {
+
+		#sidebar nav a:after {
+			background-color: #3dd6ff;
+			background-image: none;
+		}
+
+	}
+
+	#intro.portfolio-hero {
+		background-color: #101a3c;
+		background-image: url("images/intro.svg"), linear-gradient(135deg, rgba(8, 18, 36, 0.95), rgba(28, 36, 92, 0.92) 55%, rgba(63, 34, 116, 0.92));
+	}
+
+	.portfolio-hero h1 {
+		max-width: 11em;
+	}
+
+	.portfolio-hero p {
+		max-width: 42em;
+	}
+
+	.eyebrow {
+		color: #8de8ff;
+		font-size: 0.8em !important;
+		font-weight: bold;
+		letter-spacing: 0;
+		margin: 0 0 1.25em 0;
+		text-transform: uppercase;
+	}
+
+	.hero-tags,
+	.tag-list {
+		display: -moz-flex;
+		display: -webkit-flex;
+		display: -ms-flex;
+		display: flex;
+		-moz-flex-wrap: wrap;
+		-webkit-flex-wrap: wrap;
+		-ms-flex-wrap: wrap;
+		flex-wrap: wrap;
+		gap: 0.65em;
+		list-style: none;
+		margin: 0 0 2em 0;
+		padding: 0;
+	}
+
+	.hero-tags li,
+	.tag-list li {
+		background: rgba(255, 255, 255, 0.08);
+		border: solid 1px rgba(141, 232, 255, 0.22);
+		border-radius: 0.35em;
+		color: rgba(255, 255, 255, 0.78);
+		font-size: 0.78em;
+		font-weight: bold;
+		padding: 0.35em 0.75em;
+		text-transform: uppercase;
+	}
+
+	.spotlights > section > .image:before {
+		background: rgba(7, 17, 31, 0.82);
+	}
+
+	#projects.spotlights > section {
+		background-color: rgba(255, 255, 255, 0.02);
+	}
+
+	#projects.spotlights > section:nth-child(2) {
+		background-color: rgba(0, 0, 0, 0.1);
+	}
+
+	#projects.spotlights > section:nth-child(3) {
+		background-color: rgba(0, 0, 0, 0.16);
+	}
+
+	.features.blog-list section,
+	.features.skill-grid section {
+		background: rgba(7, 17, 31, 0.2);
+	}
+
+	.status-pill {
+		color: #8de8ff;
+		font-size: 0.72em;
+		font-weight: bold;
+		margin: 0 0 0.9em 0;
+		text-transform: uppercase;
+	}
+
+	.contact-panel .actions.stacked .button {
+		width: 100%;
+	}
+
+	input[type="button"].primary,
+	input[type="submit"].primary,
+	input[type="reset"].primary,
+	button.primary,
+	.button.primary {
+		background-color: #8de8ff;
+		color: #07111f !important;
+	}
+
+	input[type="button"].primary:hover,
+	input[type="submit"].primary:hover,
+	input[type="reset"].primary:hover,
+	button.primary:hover,
+	.button.primary:hover {
+		background-color: #ffffff;
+	}
+
+	@media screen and (max-width: 736px) {
+
+		.portfolio-hero h1 {
+			max-width: none;
+		}
+
+		.hero-tags,
+		.tag-list {
+			gap: 0.45em;
+		}
+
+		.hero-tags li,
+		.tag-list li {
+			font-size: 0.7em;
+		}
+
+	}
+
+	.language-landing {
+		background-color: #101a3c;
+		background-image: url("images/intro.svg"), linear-gradient(135deg, rgba(8, 18, 36, 0.95), rgba(28, 36, 92, 0.92) 55%, rgba(63, 34, 116, 0.92));
+	}
+
+	.language-landing > .inner {
+		display: -moz-flex;
+		display: -webkit-flex;
+		display: -ms-flex;
+		display: flex;
+		-moz-align-items: center;
+		-webkit-align-items: center;
+		-ms-align-items: center;
+		align-items: center;
+		-moz-justify-content: center;
+		-webkit-justify-content: center;
+		-ms-justify-content: center;
+		justify-content: center;
+		text-align: center;
+	}
+
+	.language-actions {
+		-moz-justify-content: center;
+		-webkit-justify-content: center;
+		-ms-justify-content: center;
+		justify-content: center;
+		margin: 0;
+	}

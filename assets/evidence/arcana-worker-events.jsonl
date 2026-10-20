@@ -1,0 +1,34 @@
+{"ms": 1701.846, "event": "PASS: split header and body signup"}
+{"ms": 1702.864, "event": "PASS: duplicate ID"}
+{"ms": 1703.319, "event": "PASS: duplicate nickname"}
+{"ms": 1708.128, "event": "PASS: wrong password"}
+{"ms": 1712.827, "event": "PASS: login fixture"}
+{"ms": 1713.374, "event": "PASS: queued profile"}
+{"ms": 1713.531, "event": "PASS: queued deck read"}
+{"ms": 1714.608, "event": "PASS: replace then read preserves FIFO"}
+{"ms": 1714.858, "event": "PASS: unknown card rejected"}
+{"ms": 1726.503, "event": "PASS: duplicate login on another session"}
+{"ms": 1732.049, "event": "PASS: quote/backslash signup bound parameters"}
+{"ms": 1736.741, "event": "PASS: login quote'\\id"}
+{"ms": 1737.232, "event": "PASS: quote/backslash profile bound parameters"}
+{"ms": 1737.845, "event": "PASS: SQL-shaped login is a literal ID"}
+{"ms": 1785.955, "event": "PASS: maximum frame plus merged frames after partial receive"}
+{"ms": 1786.386, "event": "PASS: header-inclusive oversize rejected"}
+{"ms": 1803.99, "event": "PASS: unterminated fixed fields rejected"}
+{"ms": 1804.232, "event": "PASS: logout closes session"}
+{"ms": 1857.355, "event": "PASS: DB lock acquired"}
+{"ms": 1857.754, "event": "login submitted while user_account locked"}
+{"ms": 1958.409, "event": "Ping sent during login DB wait"}
+{"ms": 1958.693, "event": "PASS: ping remains responsive during blocked login"}
+{"ms": 1958.827, "event": "logout sent before DB unlock"}
+{"ms": 1959.047, "event": "PASS: logout while login pending"}
+{"ms": 3377.881, "event": "DB lock released"}
+{"ms": 3395.318, "event": "PASS: login fixture"}
+{"ms": 3395.487, "event": "PASS: cancelled login does not reserve account"}
+{"ms": 3444.974, "event": "PASS: profile/deck DB lock acquired"}
+{"ms": 3445.212, "event": "profile and deck replacement queued while tables locked"}
+{"ms": 3545.872, "event": "Ping sent during profile/deck DB wait"}
+{"ms": 3546.182, "event": "PASS: ping remains responsive during blocked profile/deck"}
+{"ms": 4960.647, "event": "DB lock released"}
+{"ms": 4960.993, "event": "PASS: profile/deck complete after unlock"}
+{"ms": 4965.296, "event": "PASS: clean server shutdown"}

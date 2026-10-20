@@ -226,3 +226,11 @@ a:focus-visible,button:focus-visible{outline-color:#555}
 .feature-service-media .service-mosaic>div:first-child img{aspect-ratio:16/9;max-height:245px}
 .service-mosaic small{display:block;padding:8px 10px;font-size:12px;line-height:1.6}
 @media(max-width:760px){.media-demo-trio{grid-template-columns:1fr}.media-demo-trio .video>img{aspect-ratio:16/9}.media-demo-grid{gap:28px}.media-showcase .media-intro{font-size:14px}}
+
+/* Completed native evidence */
+.weapon-evidence-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px}
+.weapon-evidence-grid figure{margin:0}.weapon-evidence-grid img{display:block;width:100%;height:auto}
+.weapon-evidence-grid figcaption{font-size:13px;line-height:1.6;padding-top:8px}
+.evidence-scope{font-size:14px;line-height:1.85;padding:14px 18px;border-left:3px solid #527e74;background:#f0f4f1}
+@media(max-width:768px){.weapon-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.weapon-evidence-grid{grid-template-columns:1fr}}

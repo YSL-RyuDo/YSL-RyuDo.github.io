@@ -30,4 +30,4 @@ Keep all three languages synchronized when updating dates, contributions or veri
 
 ## Source access
 
-Each project links directly to its repositories and recorded contribution evidence. Private repositories stay private: their links require an authorized GitHub account. The homepage highlights VAIS, Arcana Duel and Slap Squad; VAIS includes a dedicated reconnect-state walkthrough. Video links never autoplay on this site.
+Each project links directly to its repositories and recorded contribution evidence. The homepage highlights VAIS, Arcana Duel and Slap Squad; VAIS includes a dedicated reconnect-state walkthrough. Video links never autoplay on this site.

@@ -1,0 +1,9 @@
+[SENTINEL C SPAWN] trapId=1 owner=1 roomId=1
+[SENTINEL E PLACE] trapId=1 owner=1 roomId=1 pos=(-44.0302, 2.37, 15.47)
+[SENTINEL E ACTIVATE] trapId=1 owner=1
+[SENTINEL C TRIGGER] trapId=1
+[SENTINEL C TRIGGER] trapId=1
+[SENTINEL E DESTROY BROADCAST] roomId=1 trapId=1 reason=2 cooldown=20
+[SPIKE PLANTED] roomId=1 pos=(20.96, 1.60802, -37.44)
+[SPIKE DEFUSED] roomId=1 defuser=2
+PASS: same player ID, health, pose, six actors, main round; connection unavailable for six seconds

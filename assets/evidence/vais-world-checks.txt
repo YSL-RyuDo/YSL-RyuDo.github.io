@@ -1,0 +1,17 @@
+ZONE TestMap center=19.96,1.8,-37.44 contains=PASS
+ZONE TestMap center=25.165,-1.18,35.8 contains=PASS
+ZONE Desert center=27.22,0.26,-23.24 contains=PASS
+ZONE Desert center=-21.24,-0.23,-10.83 contains=PASS
+SPAWN TestMap side=0 slot=0 lookup=PASS
+SPAWN TestMap side=0 slot=1 lookup=PASS
+SPAWN TestMap side=0 slot=2 lookup=PASS
+SPAWN TestMap side=1 slot=0 lookup=PASS
+SPAWN TestMap side=1 slot=1 lookup=PASS
+SPAWN TestMap side=1 slot=2 lookup=PASS
+SPAWN Desert side=0 slot=0 lookup=PASS
+SPAWN Desert side=0 slot=1 lookup=PASS
+SPAWN Desert side=0 slot=2 lookup=PASS
+SPAWN Desert side=1 slot=0 lookup=PASS
+SPAWN Desert side=1 slot=1 lookup=PASS
+SPAWN Desert side=1 slot=2 lookup=PASS
+PASS exported headers compiled and queried: zones=4 spawns=12

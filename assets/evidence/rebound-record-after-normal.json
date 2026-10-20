@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "width": 1600,
+    "height": 900,
+    "bestScore": 150,
+    "clears": 0,
+    "master": 0.699999988079071,
+    "music": 0.3499999940395355,
+    "effects": 0.6499999761581421,
+    "bestTime": 4.583333969116211,
+    "mute": true,
+    "fullscreen": false,
+    "shake": true,
+    "left": "A",
+    "right": "D",
+    "rise": "Space",
+    "enabledMods": []
+}

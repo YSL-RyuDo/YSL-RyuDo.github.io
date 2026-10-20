@@ -2,12 +2,22 @@
 
 [English](README.md) · [Korean](README.ko.md) · [Japanese](README.ja.md)
 
-Personal portfolio for game-server development, evidenced team contributions and research.
+English-first portfolio with full Korean and Japanese versions. The site presents my education, research, O2CUBE teaching and individual engineering case studies. CodeName VAIS is the official name of the former Project Vector.
 
-English is the default. Full translations are available at `/ko/` and `/ja/`; `/en/` mirrors the English landing page. The site is static HTML/CSS and needs no build step.
+[Website](https://ysl-ryudo.github.io/en/) · [Résumé](https://ysl-ryudo.github.io/en/resume/) · [YouTube](https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q)
 
-Featured development: Project Vector (private, in progress), BNB/BnBServer and the DeathGuider contribution fork. GCTLAB is mentioned briefly without modifying its repository. WISA 2026, CISC-W 2025 and MOD provenance are separate research entries.
+## Site structure
 
-Serve the repository with any static HTTP server to inspect the pages. Verify all language routes, keyboard focus, mobile layout and public project links before publishing. Source visibility and team attribution are preserved. Older site assets and project pages are retained.
+- `/en/`, `/ko/`, `/ja/`: complete language editions.
+- `/<language>/work/<project>/`: nine engineering case studies.
+- `/<language>/research/<study>/`: three research summaries.
+- `/<language>/resume/`: résumé with a print/PDF stylesheet.
+- `assets/`: shared styles, portrait and existing project captures.
 
-[Live portfolio](https://ysl-ryudo.github.io/)
+## Preview
+
+Use a static HTTP server from the repository root. No dependency install or build is needed. Test the language switch on both landing and detail pages, public video links, keyboard navigation and narrow layouts. The print button uses the browser's Print / Save PDF feature.
+
+## Content maintenance
+
+Keep all three languages synchronized when updating dates, contributions or verification scope. Retain teammates' and asset creators' credits. Do not publish private source, account data, signing keys or student identifiers. Preserve existing legacy project pages when updating the landing routes.

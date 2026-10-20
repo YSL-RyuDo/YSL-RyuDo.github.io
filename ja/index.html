@@ -1,47 +1,78 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Young-Sang Lee — Game Servers &amp; Research</title>
-<meta name="description" content="Young-Sang Leeです。C++・C#でゲームサーバーとマルチプレイヤー連携を開発し、開発中の課題を実験・研究へ発展させています。">
-<meta name="theme-color" content="#101b22"><link rel="canonical" href="https://ysl-ryudo.github.io/ja/">
-<link rel="alternate" hreflang="en" href="https://ysl-ryudo.github.io/">
-<link rel="alternate" hreflang="ko" href="https://ysl-ryudo.github.io/ko/">
-<link rel="alternate" hreflang="ja" href="https://ysl-ryudo.github.io/ja/">
-<link rel="alternate" hreflang="x-default" href="https://ysl-ryudo.github.io/">
-<meta property="og:title" content="Young-Sang Lee — Game Servers &amp; Research">
-<meta property="og:description" content="Young-Sang Leeです。C++・C#でゲームサーバーとマルチプレイヤー連携を開発し、開発中の課題を実験・研究へ発展させています。"><meta property="og:type" content="website">
-<meta property="og:url" content="https://ysl-ryudo.github.io/ja/"><link rel="stylesheet" href="../assets/css/portfolio.css">
+<title>ゲームサーバー・システム・研究 · Young-Sang Lee</title><meta name="description" content="プレイヤー、試合、ゲームデータをつなぐシステムを開発しています。C++ゲームサーバーとUnityのマルチプレイヤー連携に取り組み、開発中の疑問を実験と研究につなげています。">
+<meta name="theme-color" content="#f6f5f0"><link rel="canonical" href="https://ysl-ryudo.github.io/ja/">
+<link rel="alternate" hreflang="en" href="https://ysl-ryudo.github.io/en/"><link rel="alternate" hreflang="ko" href="https://ysl-ryudo.github.io/ko/"><link rel="alternate" hreflang="ja" href="https://ysl-ryudo.github.io/ja/">
+<link rel="alternate" hreflang="x-default" href="https://ysl-ryudo.github.io/en/">
+<meta property="og:title" content="ゲームサーバー・システム・研究 · Young-Sang Lee"><meta property="og:description" content="プレイヤー、試合、ゲームデータをつなぐシステムを開発しています。C++ゲームサーバーとUnityのマルチプレイヤー連携に取り組み、開発中の疑問を実験と研究につなげています。">
+<meta property="og:type" content="website"><meta property="og:url" content="https://ysl-ryudo.github.io/ja/">
+<meta property="og:image" content="https://ysl-ryudo.github.io/assets/images/young-sang-lee.jpg">
+<link rel="icon" href="/assets/images/monogram.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/career.css"><script src="/assets/js/career.js" defer></script>
 </head><body><a class="skip" href="#main">本文へ移動</a>
-<header><div class="wrap header"><a class="brand" href="../">YSL<span> / </span>Young-Sang Lee</a>
-<nav class="nav" aria-label="Main"><a href="#work">主な開発</a><a href="#research">研究</a><a href="#about">プロフィール</a></nav>
-<nav class="langs" aria-label="Language"><a href="../en/" lang="en" hreflang="en">English</a><a href="../ko/" lang="ko" hreflang="ko">Korean</a><a href="../ja/" lang="ja" hreflang="ja" aria-current="page">Japanese</a></nav></div></header>
-<main id="main"><div class="wrap"><div class="hero"><div><p class="eyebrow">ゲームサーバー · マルチプレイヤー</p>
-<h1>ゲームを支える<br><em>システムをつくる。</em></h1><p class="intro">Young-Sang Leeです。C++・C#でゲームサーバーとマルチプレイヤー連携を開発し、開発中の課題を実験・研究へ発展させています。</p><a class="button" href="#work">開発内容を見る <span aria-hidden="true">↘</span></a></div>
-<aside class="diagram" aria-label="つながる流れを考える"><p class="diagram-title">つながる流れを考える</p>
-<ol class="flow"><li>クライアント</li><li>セッション</li><li>試合</li><li>プレイヤーデータ</li></ol><p class="diagram-note">ゲームプレイ · 接続状態 · データ保存</p></aside></div>
-<div class="skills"><span>C++</span><span>C# / UNITY</span><span>WINDOWS / IOCP</span><span>NETWORKING</span><span>PYTHON / RESEARCH</span></div>
-<section id="work"><div class="section-head"><div><span class="section-num">01 / DEVELOPMENT</span><h2>主な開発</h2></div><p>担当した実装、システム間の連携、確認できる根拠を紹介します。</p></div>
-<article class="project">
-<div><p class="meta">開発継続中 · ソース非公開</p><h3>Project Vector</h3><p class="project-desc">チーム開発のマルチプレイヤーFPSで、C++ WindowsサーバーとUnityクライアントの連携を担当しています。</p>
-<div class="stack"><span>C++</span><span>IOCP</span><span>C#</span><span>Unity</span></div></div>
-<div><p class="label">担当範囲</p><ul class="contributions"><li>IOCP接続処理、セッション、パケットディスパッチ。</li><li>試合ライフサイクル・再接続状態、プロフィール・キャリア・ショップ連携。</li><li>ゲーム通信、スキル連携、クライアント検証ツール。</li></ul>
-<p class="note">開発中です。現在の検証は商用規模の証明ではなく、2クライアントの試合・2台のPCでの音声検証は別の課題です。</p><span class="private">ソースは非公開を維持</span></div></article><article class="project">
-<div><p class="meta">マルチプレイヤー · 公開ソース</p><h3>BNB / BnBServer</h3><p class="project-desc">マルチプレイヤーゲームの開発から生まれた「ゲーム内価格をどう決めるか」という問いが、価格政策研究につながりました。</p>
-<div class="stack"><span>C++</span><span>C#</span><span>Unity</span><span>TCP</span></div></div>
-<div><p class="label">担当範囲</p><ul class="contributions"><li>クライアント・サーバーのパケット処理、ルーム・試合連携。</li><li>報酬、プレイヤーデータ、ショップ関連フロー。</li><li>CISC-W 2025ポスター研究での価格政策シミュレーション。</li></ul>
-<p class="note">チームのクライアント開発と担当サーバー作業を区別します。価格研究はシミュレーションであり、実サービスの売上増加を示すものではありません。</p><div class="links"><a href="https://github.com/YSL-RyuDo/BNB/blob/main/README.ja.md">クライアント・担当記録 <span aria-hidden="true">↗</span></a><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/README.ja.md">サーバーソース <span aria-hidden="true">↗</span></a></div></div></article><article class="project">
-<div><p class="meta">チーム開発 · 担当記録用フォーク</p><h3>DeathGuider</h3><p class="project-desc">O2CUBEチームプロジェクトの経営システムを担当しました。原本とのつながりと開発履歴を保持するフォークで貢献を記録しています。</p>
-<div class="stack"><span>C#</span><span>Unity</span><span>O2CUBE</span></div></div>
-<div><p class="label">担当範囲</p><ul class="contributions"><li>バス・囚人管理、保管、日付進行。</li><li>訓練・回復・侵食、研究所・鍛冶施設。</li><li>戦闘準備の人員・装備選択と空パーティー入場防止。</li></ul>
-<p class="note">0.23Verで本人が作成したコミットを根拠として示しています。戦闘AI・手続き型マップ・他メンバーのシステムは担当範囲に含めません。</p><div class="links"><a href="https://github.com/YSL-RyuDo/DeathGuider/blob/0.23Ver/README.ja.md">担当記録フォーク <span aria-hidden="true">↗</span></a><a href="https://github.com/vliza321/DeathGuider">元のチームリポジトリ <span aria-hidden="true">↗</span></a></div></div></article><details class="more"><summary>その他の開発経験</summary><p>Magicwar・DumbGuysのマルチプレイヤー連携、Cylinderの会話・データ・シーン連携、RE:BOUND・Moonlit Hotelのゲーム試作、PitchLabのリアルタイム音声処理・分析にも取り組みました。各リポジトリは既存の非公開状態を維持しています。</p></details></section></div>
-<section id="research" class="research"><div class="wrap"><div class="section-head"><div><span class="section-num">02 / RESEARCH</span><h2>研究</h2></div><p>ゲームシステムの課題から発展した、互いに独立した3つの研究です。</p></div>
-<div class="research-grid"><article class="research-card"><p class="meta">WISA 2026 · 済州 · ポスター発表</p>
-<h3>画像を変形すると何が残るか？</h3><p>C2PA検証と知覚ハッシュによるゲーム素材検証です。50画像の実験で、出所情報が失われる条件と類似画像検索の失敗条件を分析しました。</p><p class="role">筆頭著者・ポスター発表者 · 共著研究</p>
-<a href="https://github.com/YSL-RyuDo/wisa-2026-game-asset-verification/blob/main/README.ja.md">コード・結果・論文 <span aria-hidden="true">↗</span></a></article><article class="research-card"><p class="meta">CISC-W 2025 · ポスター発表</p>
-<h3>ゲーム内価格をどう決めるか？</h3><p>BNB開発時の価格設計の問いを、固定・動的価格政策の研究へ発展させました。シミュレーション上の消費パターンをCNNで分析しました。</p><p class="role">筆頭著者・ポスター発表者 · シミュレーション研究</p>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/main/research/CISC-W_2025_paper.pdf">論文を読む <span aria-hidden="true">↗</span></a></article><article class="research-card"><p class="meta">継続中 · 独立した研究</p>
-<h3>パッケージの複数の出所をたどる。</h3><p>コード・画像特徴と複数親選択によるMODパッケージの出所復元です。アルゴリズム、実験範囲、限界を記録しながら拡張しています。</p><p class="role">WISA・GCTLABとは別のプロジェクト</p>
-<a href="https://github.com/YSL-RyuDo/mod-provenance-research/blob/main/README.ja.md">研究を見る <span aria-hidden="true">↗</span></a></article></div></div></section>
-<section id="about" class="wrap about"><div><span class="section-num">03 / ABOUT</span>
-<div class="about-person"><img class="portrait" src="../assets/images/young-sang-lee.jpg" width="128" height="132" alt="Young-Sang Lee · 이영상" loading="lazy"><div class="person-name">Young-Sang Lee<small>이영상 / YSL-RyuDo</small></div></div><h2>実装から積み上げる<br>サーバー開発力。</h2></div>
-<div><p>ゲームサーバーエンジニアを目指し、接続状態・マルチプレイヤー動作・データ保存を一体として理解し、実装しています。チーム開発の担当範囲はコードとコミットで説明し、試作・実験結果・開発中の作業を区別します。</p><div class="links"><a href="https://github.com/YSL-RyuDo">GitHub · YSL-RyuDo <span aria-hidden="true">↗</span></a></div><p class="gctlab">GCTLAB — アップロード検証、ストレージ連携、再試行・永続化、運用フローの共同開発に参加しました。非公開の共同開発として概要のみ掲載し、WISA研究とは区別しています。</p></div></section></main>
-<footer><div class="wrap footer"><strong>Young-Sang Lee / 이영상</strong><span>コード・担当範囲・研究の記録。2026年10月更新。</span></div></footer></body></html>
+<header class="site-header"><div class="wrap header-inner"><a class="brand" href="/ja/" aria-label="Young-Sang Lee home">YSL<span> / </span><small>Young-Sang Lee</small></a><nav aria-label="Main"><a href="/ja/#work">開発</a><a href="/ja/#research">研究・発表</a><a href="/ja/#journey">学歴・活動</a><a href="/ja/resume/">履歴書</a></nav><nav class="languages" aria-label="Language"><a href="/en/" lang="en" hreflang="en">English</a><a href="/ko/" lang="ko" hreflang="ko">Korean</a><a href="/ja/" lang="ja" hreflang="ja" aria-current="page">Japanese</a></nav></div></header><main id="main"><section class="wrap hero"><div class="hero-copy"><p class="eyebrow">GAME SERVER PROGRAMMING / PORTFOLIO 2026</p>
+<h1>ゲームをつなぎ、<br>システムを<br><em>つくる。</em></h1><p class="hero-intro">プレイヤー、試合、ゲームデータをつなぐシステムを開発しています。C++ゲームサーバーとUnityのマルチプレイヤー連携に取り組み、開発中の疑問を実験と研究につなげています。</p><p class="degree"><span></span>弘益大学校 ゲーム学科（工学）修士課程</p>
+<div class="actions"><a class="button" href="#work">開発内容を見る ↘</a><a class="button outline" href="/ja/resume/">履歴書 ↗</a></div></div>
+<figure class="portrait-card"><img src="/assets/images/young-sang-lee.jpg" alt="Young-Sang Lee / イ・ヨンサン" width="1088" height="1122" fetchpriority="high">
+<figcaption><strong>Young-Sang Lee / イ・ヨンサン</strong><span>YSL-RyuDo</span><small>C++ / C# / MULTIPLAYER</small></figcaption></figure>
+</section><section class="wrap focus-strip" aria-label="開発分野"><div><span>01</span><h3>ゲームサーバー</h3><p>IOCP、セッション、パケット、試合のライフサイクル。</p></div><div><span>02</span><h3>システム設計</h3><p>状態復元、ワーカー分離、データ駆動の制作ツール。</p></div><div><span>03</span><h3>研究と知識共有</h3><p>2件のポスター発表と1学期間の技術勉強会の進行。</p></div></section>
+<section class="wrap section" id="work"><div class="section-heading"><div><p class="eyebrow">01 / ENGINEERING</p><h2>主な開発</h2></div>
+<p>ゲームの画面、設計の判断、担当した実装を確認できます。</p></div>
+<div class="work-grid featured"><article class="work-card"><a class="cover" href="/ja/work/vector/" aria-label="CodeName VAIS — 開発事例を見る"><img src="https://i.ytimg.com/vi/WqRBn-yWVdo/hqdefault.jpg" width="480" height="360" alt="CodeName VAIS · YouTube" loading="lazy"><span class="media-note">VIDEO RECORD</span></a>
+<div class="card-body"><div class="card-top"><span>01 / SERVER / MULTIPLAYER</span><span>開発中</span></div>
+<h3><a href="/ja/work/vector/">CodeName VAIS</a></h3>
+<p>接続の先にある、試合の状態まで。</p><small class="tech">C++ · Windows IOCP · C# · Unity</small>
+<a class="text-link" href="/ja/work/vector/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/bnb/" aria-label="BNB / BnBServer — 開発事例を見る"><img src="https://i.ytimg.com/vi/MI5NtNU9eP8/hqdefault.jpg" width="480" height="360" alt="BNB / BnBServer · YouTube" loading="lazy"><span class="media-note">VIDEO RECORD</span></a>
+<div class="card-body"><div class="card-top"><span>02 / MULTIPLAYER / GAME ECONOMY</span><span>チーム開発</span></div>
+<h3><a href="/ja/work/bnb/">BNB / BnBServer</a></h3>
+<p>マルチプレイヤー実装から価格政策の研究へ。</p><small class="tech">C++ · Winsock · C# · Unity</small>
+<a class="text-link" href="/ja/work/bnb/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/deathguider/" aria-label="DeathGuider — 開発事例を見る"><img src="https://i.ytimg.com/vi/dwgntWQCBTk/hqdefault.jpg" width="480" height="360" alt="DeathGuider · YouTube" loading="lazy"><span class="media-note">VIDEO RECORD</span></a>
+<div class="card-body"><div class="card-top"><span>03 / TEAM GAME / SYSTEMS</span><span>担当記録フォーク</span></div>
+<h3><a href="/ja/work/deathguider/">DeathGuider</a></h3>
+<p>戦闘と戦闘をつなぐ経営システム。</p><small class="tech">C# · Unity · O2CUBE</small>
+<a class="text-link" href="/ja/work/deathguider/">開発事例を見る <span>↗</span></a></div></article></div>
+<div class="subheading"><h3>その他のシステム・ゲーム・ツール</h3><p>各プロジェクトの実装と設計を個別に紹介します。</p></div>
+<div class="work-grid"><article class="work-card"><a class="cover" href="/ja/work/magicwar/" aria-label="Magicwar — 開発事例を見る"><img src="https://i.ytimg.com/vi/8sKpA2H9Ib4/hqdefault.jpg" width="480" height="360" alt="Magicwar · YouTube" loading="lazy"><span class="media-note">VIDEO RECORD</span></a>
+<div class="card-body"><div class="card-top"><span>04 / SERVER / CONCURRENCY</span><span>開発記録</span></div>
+<h3><a href="/ja/work/magicwar/">Magicwar</a></h3>
+<p>ネットワーク処理とDB処理の分離。</p><small class="tech">C++ · IOCP · DB worker · Unity</small>
+<a class="text-link" href="/ja/work/magicwar/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/dumbguys/" aria-label="DumbGuys — 開発事例を見る"><img src="https://i.ytimg.com/vi/Z4tffAvRjJs/hqdefault.jpg" width="480" height="360" alt="DumbGuys · YouTube" loading="lazy"><span class="media-note">VIDEO RECORD</span></a>
+<div class="card-body"><div class="card-top"><span>05 / MULTIPLAYER / INTEGRATION</span><span>開発記録</span></div>
+<h3><a href="/ja/work/dumbguys/">DumbGuys</a></h3>
+<p>ロビーから試合までをつなぐ。</p><small class="tech">C++ · C# · Unity</small>
+<a class="text-link" href="/ja/work/dumbguys/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/cylinder/" aria-label="Cylinder — 開発事例を見る"><div class="type-cover"><span>DATA / STATE / UI</span><strong>Dialogue<br>& interaction.</strong><small>Cylinder</small></div></a>
+<div class="card-body"><div class="card-top"><span>06 / GAME SYSTEMS / DATA</span><span>チーム開発での担当</span></div>
+<h3><a href="/ja/work/cylinder/">Cylinder</a></h3>
+<p>データと状態でつなぐ会話システム。</p><small class="tech">C# · Unity · CSV</small>
+<a class="text-link" href="/ja/work/cylinder/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/rebound/" aria-label="RE:BOUND — 開発事例を見る"><img src="/assets/images/rebound-game.png" alt="RE:BOUND" loading="lazy"><span class="media-note">PROJECT SCREEN</span></a>
+<div class="card-body"><div class="card-top"><span>07 / GAMEPLAY / AUTHORING TOOLS</span><span>プレイ可能なプロトタイプ</span></div>
+<h3><a href="/ja/work/rebound/">RE:BOUND</a></h3>
+<p>ゲームと制作ツールで共有する軌道モデル。</p><small class="tech">C# · Unity 2D · Local content</small>
+<a class="text-link" href="/ja/work/rebound/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/moonlit/" aria-label="Moonlit Hotel — 開発事例を見る"><img src="/assets/images/moonlit-dialogue.png" alt="Moonlit Hotel" loading="lazy"><span class="media-note">PROJECT SCREEN</span></a>
+<div class="card-body"><div class="card-top"><span>08 / GAME SYSTEMS / CONTENT TOOLS</span><span>プレイ可能なプロトタイプ</span></div>
+<h3><a href="/ja/work/moonlit/">Moonlit Hotel</a></h3>
+<p>パズルのルールと表示を分離する。</p><small class="tech">C# · Unity · JSON / PNG</small>
+<a class="text-link" href="/ja/work/moonlit/">開発事例を見る <span>↗</span></a></div></article><article class="work-card"><a class="cover" href="/ja/work/pitchlab/" aria-label="PitchLab — 開発事例を見る"><img src="/assets/images/pitchlab.png" alt="PitchLab" loading="lazy"><span class="media-note">PROJECT SCREEN</span></a>
+<div class="card-body"><div class="card-top"><span>09 / C++ / REAL-TIME SYSTEMS</span><span>C++システム開発事例</span></div>
+<h3><a href="/ja/work/pitchlab/">PitchLab</a></h3>
+<p>重い処理をオーディオコールバックから分離。</p><small class="tech">C++ · JUCE · WASAPI · DSP</small>
+<a class="text-link" href="/ja/work/pitchlab/">開発事例を見る <span>↗</span></a></div></article></div></section>
+<section class="research-section" id="research"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">02 / RESEARCH</p><h2>研究・発表</h2></div>
+<p>ゲーム開発で生まれた疑問を実験で確かめます。</p></div>
+<div class="research-grid"><article class="research-card"><span class="research-index">01</span><p class="eyebrow">WISA 2026 · 済州 · ポスター発表</p>
+<h3><a href="/ja/research/wisa/">画像を変形すると何が残るか？</a></h3><p>C2PA検証と知覚ハッシュによるゲーム素材検証です。50画像の実験で、出所情報が失われる条件と類似画像検索の失敗条件を分析しました。</p>
+<p class="research-role">筆頭著者・ポスター発表者 · 共著研究</p><a class="text-link" href="/ja/research/wisa/">開発事例を見る ↗</a></article><article class="research-card"><span class="research-index">02</span><p class="eyebrow">CISC-W 2025 · ポスター発表</p>
+<h3><a href="/ja/research/cisc/">ゲーム内価格をどう決めるか？</a></h3><p>BNB開発時の価格設計の問いを、固定・動的価格政策の研究へ発展させました。シミュレーション上の消費パターンをCNNで分析しました。</p>
+<p class="research-role">筆頭著者・ポスター発表者 · シミュレーション研究</p><a class="text-link" href="/ja/research/cisc/">開発事例を見る ↗</a></article><article class="research-card"><span class="research-index">03</span><p class="eyebrow">継続中 · 独立した研究</p>
+<h3><a href="/ja/research/mod/">パッケージの複数の出所をたどる。</a></h3><p>コード・画像特徴と複数親選択によるMODパッケージの出所復元です。アルゴリズム、実験範囲、限界を記録しながら拡張しています。</p>
+<p class="research-role">WISA・GCTLABとは別のプロジェクト</p><a class="text-link" href="/ja/research/mod/">開発事例を見る ↗</a></article></div></div></section>
+<section class="wrap section" id="journey"><div class="section-heading"><div><p class="eyebrow">03 / PEOPLE & PRACTICE</p><h2>学歴・リーダーシップ</h2></div>
+<p>ゲーム開発、研究、知識共有へとつながる経験です。</p></div>
+<div class="journey-grid"><div><ol class="timeline"><li><time>2026.09 — 現在</time><div><h3>ゲーム学科（工学）修士課程</h3><p>弘益大学校 世宗キャンパス</p></div></li><li><time>2025.03 — 2026.08</time><div><h3>ゲームソフトウェア専攻 学部研究生</h3><p>弘益大学校 世宗キャンパス</p></div></li><li><time>2021 — 2026.08</time><div><h3>ゲームソフトウェア専攻 学士課程修了</h3><p>弘益大学校 世宗キャンパス</p></div></li></ol></div><div class="leadership"><p class="eyebrow">O2CUBE / 2025</p><h3>O2CUBE · 2025年 ソフトウェアチームリーダー</h3><p>2025年3～6月にC言語とコンピューターアーキテクチャの勉強会を担当しました。C言語の基礎から配列までを扱い、1学期間のアーキテクチャ学習を進行しました。</p><a class="text-link" href="https://cafe.naver.com/o2cube">O2CUBE ↗</a>
+<div class="activities"><h4>学習共同体での活動</h4><ul><li><span>2025.04 — 2025.07</span> 自主学習サークル 修了</li><li><span>2021.04 — 2021.05</span> HOLy学習共同体 修了</li></ul></div></div></div>
+<aside class="collaboration"><strong>GCTLAB</strong><p>GCTLABではアップロード検証、ストレージ連携、再試行・永続化、運用フローを担当しました。JEASSOH名義のコミットにも本人の作業が含まれるため、アカウント名だけでなく確認済みの担当範囲で説明しています。</p></aside></section>
+<section class="wrap connect"><p class="eyebrow">CODE / DEMOS / EXPERIENCE</p><h2>コード、デモ、経験を一か所で。</h2>
+<div class="actions"><a class="button" href="https://github.com/YSL-RyuDo">GitHub ↗</a><a class="button outline" href="https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q">YouTube ↗</a><a class="button outline" href="/ja/resume/">履歴書 ↗</a></div></section></main>
+<footer class="wrap footer"><div><strong>Young-Sang Lee · 이영상</strong><p>ゲームサーバープログラマー · 修士課程</p></div>
+<div class="footer-links"><a href="https://github.com/YSL-RyuDo">GitHub ↗</a><a href="https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q">YouTube ↗</a><a href="/ja/resume/">履歴書 ↗</a></div>
+<small>2026年10月時点</small></footer></body></html>

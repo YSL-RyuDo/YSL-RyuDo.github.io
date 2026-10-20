@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DumbGuys · Young-Sang Lee</title><meta name="description" content="로비에서 경기까지 이어지는 흐름.">
+<meta name="theme-color" content="#f6f5f0"><link rel="canonical" href="https://ysl-ryudo.github.io/ko/work/dumbguys/">
+<link rel="alternate" hreflang="en" href="https://ysl-ryudo.github.io/en/work/dumbguys/"><link rel="alternate" hreflang="ko" href="https://ysl-ryudo.github.io/ko/work/dumbguys/"><link rel="alternate" hreflang="ja" href="https://ysl-ryudo.github.io/ja/work/dumbguys/">
+<link rel="alternate" hreflang="x-default" href="https://ysl-ryudo.github.io/en/work/dumbguys/">
+<meta property="og:title" content="DumbGuys · Young-Sang Lee"><meta property="og:description" content="로비에서 경기까지 이어지는 흐름.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://ysl-ryudo.github.io/ko/work/dumbguys/">
+<meta property="og:image" content="https://ysl-ryudo.github.io/assets/images/young-sang-lee.jpg">
+<link rel="icon" href="/assets/images/monogram.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/career.css"><script src="/assets/js/career.js" defer></script>
+</head><body><a class="skip" href="#main">본문으로 이동</a>
+<header class="site-header"><div class="wrap header-inner"><a class="brand" href="/ko/" aria-label="Young-Sang Lee home">YSL<span> / </span><small>Young-Sang Lee</small></a><nav aria-label="Main"><a href="/ko/#work">주요 개발</a><a href="/ko/#research">연구·발표</a><a href="/ko/#journey">학력·활동</a><a href="/ko/resume/">이력서</a></nav><nav class="languages" aria-label="Language"><a href="/en/work/dumbguys/" lang="en" hreflang="en">English</a><a href="/ko/work/dumbguys/" lang="ko" hreflang="ko" aria-current="page">Korean</a><a href="/ja/work/dumbguys/" lang="ja" hreflang="ja">Japanese</a></nav></div></header><main id="main"><div class="wrap case"><a class="back" href="/ko/#work">← 포트폴리오로</a>
+<div class="case-hero"><p class="eyebrow">MULTIPLAYER / INTEGRATION / 개발 기록</p><h1>DumbGuys</h1><p class="case-deck">로비에서 경기까지 이어지는 흐름.</p>
+<p class="alias"></p><div class="tags"><span>C++</span><span>C#</span><span>Unity</span></div></div>
+<figure class="system-flow"><figcaption>구현 개요 · 개념 흐름도</figcaption><ol><li><span>01</span>Account / connection</li><li><span>02</span>Lobby / room</li><li><span>03</span>Match / player state</li><li><span>04</span>Store / appearance</li></ol></figure><div class="case-narrative"><section><span class="eyebrow">01</span><h2>해결하려던 문제</h2><p>계정·방·플레이어 외형 정보를 로비와 경기 흐름으로 연결하는 작업입니다. 클라이언트와 서버를 서로 맞는 버전에서 살펴보는 것도 중요합니다.</p></section><section><span class="eyebrow">02</span><h2>내 구현과 설계</h2><p>계정·연결 처리, 방·플레이어 상태, 상점·외형 데이터와 클라이언트 로비·경기 연동을 작업했습니다.</p></section><section><span class="eyebrow">03</span><h2>구현을 확인하는 방법</h2><p>시연 전 서버 기준 버전과 클라이언트의 후속 restore-1121 브랜치를 비교해야 합니다. 개발 기록은 구현 범위를 설명하며 새로 측정한 성능 결과는 아닙니다.</p></section></div>
+<section class="case-section"><h2>개발 시연 영상</h2><div class="video-grid"><a class="video" href="https://www.youtube.com/watch?v=Z4tffAvRjJs" aria-label="DumbGuys full play · YouTube에서 보기"><img src="https://i.ytimg.com/vi/Z4tffAvRjJs/hqdefault.jpg" alt="DumbGuys FullPlay" width="480" height="360" loading="lazy"><span class="play" aria-hidden="true">▶</span><span class="video-label">DumbGuys full play <small>YouTube에서 보기 ↗</small></span></a></div><p class="fine">촬영 당시의 프로젝트 영상입니다. 현재 브랜치의 새 검증 결과나 게임 전체를 단독 제작했다는 의미는 아닙니다.</p></section><section class="case-section"><h2>담당 범위와 검증</h2><div class="scope-grid"><article><h3>DumbGuys</h3><ul><li>클라이언트 네트워크와 로그인·로비·로딩·경기·결과 흐름을 작업했습니다.</li><li>이동·입력 분리와 이동 발판, 밀기, 낙하, 곡선 파이프 이동 등의 상호작용을 구현했습니다.</li><li>restore-1121에서 통합·사운드 후속 작업을 이어갔습니다. 기본 브랜치에 없는 후속 작업이 이 브랜치에 있습니다.</li></ul></article><article><h3>DumbGuysServer</h3><ul><li>게임 클라이언트의 계정·연결 처리를 구현했습니다.</li><li>방·매치·플레이어 상태와 상점·외형 관련 데이터를 작업했습니다.</li><li>클라이언트의 로비·경기 흐름과 서버를 연동했습니다.</li></ul></article></div></section>
+<section class="case-section"><h2>코드와 기여 근거</h2><div class="evidence-links"><p>소스 비공개 · 개발 사례 공개</p><p>이 페이지에는 설계와 확인된 구현 범위를 공개합니다. 코드 링크와 상세 개발 기록은 비공개 저장소에서 관리합니다.</p></div></section>
+</div></main>
+<footer class="wrap footer"><div><strong>Young-Sang Lee · 이영상</strong><p>게임 서버 프로그래머 · 석사과정</p></div>
+<div class="footer-links"><a href="https://github.com/YSL-RyuDo">GitHub ↗</a><a href="https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q">YouTube ↗</a><a href="/ko/resume/">이력서 ↗</a></div>
+<small>2026년 10월 기준</small></footer></body></html>

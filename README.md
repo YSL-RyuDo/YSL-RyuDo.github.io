@@ -1,6 +1,8 @@
 # Young-Sang Lee, Portfolio
 
-[English](README.md), [Korean](README.ko.md), [Japanese](README.ja.md)
+<!-- portfolio-languages -->
+[![English (current)](https://ysl-ryudo.github.io/assets/diagrams/language-en-current.svg)](README.md) [![한국어](https://ysl-ryudo.github.io/assets/diagrams/language-ko.svg)](README.ko.md) [![日本語](https://ysl-ryudo.github.io/assets/diagrams/language-ja.svg)](README.ja.md)
+<!-- /portfolio-languages -->
 
 English-first portfolio with full Korean and Japanese versions. The site presents my education, research, O2CUBE teaching and individual engineering case studies. CodeName VAIS is the official name of the former Project Vector.
 

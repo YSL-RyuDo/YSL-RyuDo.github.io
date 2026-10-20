@@ -1,6 +1,8 @@
 # Young-Sang Lee, Portfolio
 
-[English](README.md), [Korean](README.ko.md), [Japanese](README.ja.md)
+<!-- portfolio-languages -->
+[![English](https://ysl-ryudo.github.io/assets/diagrams/language-en.svg)](README.md) [![한국어 (현재 언어)](https://ysl-ryudo.github.io/assets/diagrams/language-ko-current.svg)](README.ko.md) [![日本語](https://ysl-ryudo.github.io/assets/diagrams/language-ja.svg)](README.ja.md)
+<!-- /portfolio-languages -->
 
 영어 기본, 한국어, 일본어 전체 번역 포트폴리오입니다. 학력, 연구, 오투큐브 학술회와 프로젝트별 설계 사례를 소개합니다. 기존 Project Vector의 정식 명칭은 CodeName VAIS입니다.
 

@@ -44,3 +44,43 @@ html:lang(ko) h1,html:lang(ko) h2,html:lang(ko) h3,html:lang(ko) p,html:lang(ja)
 .scope-catalog .evidence-links{gap:.4rem;margin-top:1.15rem}
 .scope-catalog .evidence-links a{font-size:.72rem;overflow-wrap:anywhere;max-width:100%}
 @media(max-width:760px){.scope-catalog{grid-template-columns:1fr}.scope-catalog article{padding:1.2rem}.player-flow{padding:1rem}.case-reading-nav{font-size:.86rem}}
+/* Comfortable, persistent language choices on landing and detail pages. */
+.site-header .header-inner .languages{
+  display:flex;gap:6px;padding-left:16px;align-items:center;font-size:13px;
+}
+.site-header .header-inner .languages a{
+  display:inline-flex;min-height:44px;min-width:72px;padding:10px 13px;
+  justify-content:center;align-items:center;border:1px solid #536174;
+  border-radius:8px;color:#e6edf5;background:#172638;text-decoration:none;
+  line-height:1.2;white-space:nowrap;
+}
+.site-header .header-inner .languages a[aria-current="page"]{
+  background:#a8efd2;color:#102c22;border-color:#a8efd2;font-weight:750;
+  text-decoration:none;
+}
+.site-header .header-inner .languages a:hover{border-color:#a8efd2;}
+.site-header .header-inner .languages a:focus-visible{
+  outline:3px solid #fff;outline-offset:3px;
+}
+.implementation-diagram{max-width:600px;margin:30px auto 44px;}
+.implementation-diagram a{display:block;border-radius:20px;}
+.implementation-diagram img{display:block;width:100%;height:auto;border-radius:20px;}
+.implementation-diagram figcaption{margin-top:14px;color:var(--muted);font-size:15px;line-height:1.7;}
+@media(max-width:760px){
+  .site-header .header-inner .languages{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;
+    border-left:0;padding:0;margin:8px 0 0;gap:6px;
+  }
+  .site-header .header-inner .languages a{min-width:0;min-height:44px;padding:9px 8px;font-size:13px;}
+  .implementation-diagram{margin:24px 0 32px;}
+}
+/* Actual game captures use their original aspect ratio. */
+.gameplay-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.gameplay-grid figure{margin:0;min-width:0}
+.gameplay-grid img,.gameplay-grid video{display:block;width:100%;height:auto;border-radius:10px;background:#09121b}
+.gameplay-grid figcaption{margin-top:10px;line-height:1.65;color:var(--muted,#6c7684)}
+.gameplay-grid .gameplay-video{grid-column:1/-1}
+.feature-capture-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:#09121b;padding:8px}
+.feature-media .feature-capture-pair img{width:100%;height:auto;aspect-ratio:auto;object-fit:contain}
+.feature-media img.runtime-cover{height:auto;aspect-ratio:auto;object-fit:contain}
+@media(max-width:700px){.gameplay-grid{grid-template-columns:1fr;gap:20px}}

@@ -1,18 +1,22 @@
-# Young-Sang Lee — Portfolio
+# Young-Sang Lee, Portfolio
 
-[English](README.md) · [Korean](README.ko.md) · [Japanese](README.ja.md)
+[English](README.md), [Korean](README.ko.md), [Japanese](README.ja.md)
 
 英語を標準とし、韓国語・日本語の完全版を備えたポートフォリオです。学歴、研究、O2CUBEの勉強会と各開発事例を紹介します。旧Project Vectorの正式名称はCodeName VAISです。
 
-[Website](https://ysl-ryudo.github.io/ja/) · [履歴書](https://ysl-ryudo.github.io/ja/resume/) · [YouTube](https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q)
+[Website](https://ysl-ryudo.github.io/ja/), [履歴書](https://ysl-ryudo.github.io/ja/resume/), [YouTube](https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q)
 
 ## サイト構成
 
-- `/en/`、`/ko/`、`/ja/`：各言語の完全版。
-- `/<言語>/work/<プロジェクト>/`：9件の開発事例。
-- `/<言語>/research/<研究>/`：3件の研究紹介。
-- `/<言語>/resume/`：印刷・PDF保存用スタイル付き履歴書。
-- `assets/`：共通スタイル、本人写真、既存のプロジェクト画面。
+`/en/`、`/ko/`、`/ja/`：各言語の完全版。
+
+`/<言語>/work/<プロジェクト>/`：9件の開発事例。
+
+`/<言語>/research/<研究>/`：3件の研究紹介。
+
+`/<言語>/resume/`：印刷・PDF保存用スタイル付き履歴書。
+
+`assets/`：共通スタイル、本人写真、既存のプロジェクト画面。
 
 ## プレビュー
 
@@ -21,7 +25,6 @@
 ## 内容の管理
 
 日付、担当範囲、検証範囲は3言語を併せて更新してください。チームと素材制作者のクレジットを維持し、非公開ソース、アカウントデータ、署名鍵、学籍番号を公開しないでください。トップページ更新時も既存の詳細ページを保持します。
-
 
 ## ソースへのアクセス
 

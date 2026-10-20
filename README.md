@@ -1,18 +1,22 @@
-# Young-Sang Lee — Portfolio
+# Young-Sang Lee, Portfolio
 
-[English](README.md) · [Korean](README.ko.md) · [Japanese](README.ja.md)
+[English](README.md), [Korean](README.ko.md), [Japanese](README.ja.md)
 
 English-first portfolio with full Korean and Japanese versions. The site presents my education, research, O2CUBE teaching and individual engineering case studies. CodeName VAIS is the official name of the former Project Vector.
 
-[Website](https://ysl-ryudo.github.io/en/) · [Résumé](https://ysl-ryudo.github.io/en/resume/) · [YouTube](https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q)
+[Website](https://ysl-ryudo.github.io/en/), [Résumé](https://ysl-ryudo.github.io/en/resume/), [YouTube](https://www.youtube.com/@%EC%9D%B4%EC%98%81%EC%83%81-e1q)
 
 ## Site structure
 
-- `/en/`, `/ko/`, `/ja/`: complete language editions.
-- `/<language>/work/<project>/`: nine engineering case studies.
-- `/<language>/research/<study>/`: three research summaries.
-- `/<language>/resume/`: résumé with a print/PDF stylesheet.
-- `assets/`: shared styles, portrait and existing project captures.
+`/en/`, `/ko/`, `/ja/`: complete language editions.
+
+`/<language>/work/<project>/`: nine engineering case studies.
+
+`/<language>/research/<study>/`: three research summaries.
+
+`/<language>/resume/`: résumé with a print/PDF stylesheet.
+
+`assets/`: shared styles, portrait and existing project captures.
 
 ## Preview
 
@@ -21,7 +25,6 @@ Use a static HTTP server from the repository root. No dependency install or buil
 ## Content maintenance
 
 Keep all three languages synchronized when updating dates, contributions or verification scope. Retain teammates' and asset creators' credits. Do not publish private source, account data, signing keys or student identifiers. Preserve existing legacy project pages when updating the landing routes.
-
 
 ## Source access
 

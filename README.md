@@ -21,3 +21,8 @@ Use a static HTTP server from the repository root. No dependency install or buil
 ## Content maintenance
 
 Keep all three languages synchronized when updating dates, contributions or verification scope. Retain teammates' and asset creators' credits. Do not publish private source, account data, signing keys or student identifiers. Preserve existing legacy project pages when updating the landing routes.
+
+
+## Source access
+
+Each project links directly to its repositories and recorded contribution evidence. Private repositories stay private: their links require an authorized GitHub account. The homepage highlights VAIS, Arcana Duel and Slap Squad; VAIS includes a dedicated reconnect-state walkthrough. Video links never autoplay on this site.

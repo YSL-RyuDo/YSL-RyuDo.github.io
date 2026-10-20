@@ -198,3 +198,31 @@ a:focus-visible,button:focus-visible{outline-color:#555}
 .server-update-grid p,.verification-scope{font-size:14px;line-height:1.8}
 .verification-scope{color:var(--muted)}
 @media(max-width:760px){.server-update{padding:20px}.server-update-grid{grid-template-columns:1fr;gap:12px}.server-update h2{font-size:25px}}
+
+/* Existing recordings and screenshots, paired with contribution evidence. */
+.media-showcase .media-intro{max-width:84ch;font-size:15px;line-height:1.85;color:var(--muted);margin-bottom:26px}
+.media-demo-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.media-demo-trio{grid-template-columns:repeat(3,minmax(0,1fr))}
+.media-demo{min-width:0}
+.media-demo .video>img{display:block;aspect-ratio:16/9;width:100%;height:auto;object-fit:contain;background:#eeede8}
+.media-demo-trio .video>img{aspect-ratio:16/9}
+.media-demo .video-label{flex-wrap:wrap;line-height:1.6;font-size:14px;padding:14px}
+.media-related{display:flex;gap:7px 14px;flex-wrap:wrap;margin-top:14px;line-height:1.6;font-size:12px}
+.media-related>span{flex-basis:100%;color:var(--muted);font-size:11px}
+.media-related a{overflow-wrap:anywhere;text-underline-offset:3px}
+.media-showcase .media-subheading{margin:32px 0 18px;font-size:18px;line-height:1.6}
+.media-showcase .media-playback{margin-top:24px}
+.media-showcase .media-stills figure:only-child{grid-column:1/-1}
+.media-showcase .media-editor{grid-column:1/-1}
+.media-showcase .media-stills img{border:1px solid var(--line);border-radius:4px}
+.media-showcase .media-stills figcaption{font-size:13px}
+.media-archive{margin-top:30px;border-top:1px solid var(--line);padding-top:18px}
+.media-archive summary{cursor:pointer;font-size:14px;font-weight:600;padding:6px 0}
+.media-archive .video-grid{margin-top:18px}
+.feature-service-media .service-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
+.service-mosaic>div{min-width:0;background:#fff}
+.service-mosaic>div:first-child{grid-column:1/-1}
+.feature-service-media .service-mosaic img{display:block;aspect-ratio:16/9;object-fit:contain;width:100%;height:auto}
+.feature-service-media .service-mosaic>div:first-child img{aspect-ratio:16/9;max-height:245px}
+.service-mosaic small{display:block;padding:8px 10px;font-size:12px;line-height:1.6}
+@media(max-width:760px){.media-demo-trio{grid-template-columns:1fr}.media-demo-trio .video>img{aspect-ratio:16/9}.media-demo-grid{gap:28px}.media-showcase .media-intro{font-size:14px}}

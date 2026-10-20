@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Young-Sang Lee — Game Servers &amp; Research</title>
+<meta name="description" content="Young-Sang Leeです。C++・C#でゲームサーバーとマルチプレイヤー連携を開発し、開発中の課題を実験・研究へ発展させています。">
+<meta name="theme-color" content="#101b22"><link rel="canonical" href="https://ysl-ryudo.github.io/ja/">
+<link rel="alternate" hreflang="en" href="https://ysl-ryudo.github.io/">
+<link rel="alternate" hreflang="ko" href="https://ysl-ryudo.github.io/ko/">
+<link rel="alternate" hreflang="ja" href="https://ysl-ryudo.github.io/ja/">
+<link rel="alternate" hreflang="x-default" href="https://ysl-ryudo.github.io/">
+<meta property="og:title" content="Young-Sang Lee — Game Servers &amp; Research">
+<meta property="og:description" content="Young-Sang Leeです。C++・C#でゲームサーバーとマルチプレイヤー連携を開発し、開発中の課題を実験・研究へ発展させています。"><meta property="og:type" content="website">
+<meta property="og:url" content="https://ysl-ryudo.github.io/ja/"><link rel="stylesheet" href="../assets/css/portfolio.css">
+</head><body><a class="skip" href="#main">本文へ移動</a>
+<header><div class="wrap header"><a class="brand" href="../">YSL<span> / </span>Young-Sang Lee</a>
+<nav class="nav" aria-label="Main"><a href="#work">主な開発</a><a href="#research">研究</a><a href="#about">プロフィール</a></nav>
+<nav class="langs" aria-label="Language"><a href="../en/" lang="en" hreflang="en">English</a><a href="../ko/" lang="ko" hreflang="ko">Korean</a><a href="../ja/" lang="ja" hreflang="ja" aria-current="page">Japanese</a></nav></div></header>
+<main id="main"><div class="wrap"><div class="hero"><div><p class="eyebrow">ゲームサーバー · マルチプレイヤー</p>
+<h1>ゲームを支える<br><em>システムをつくる。</em></h1><p class="intro">Young-Sang Leeです。C++・C#でゲームサーバーとマルチプレイヤー連携を開発し、開発中の課題を実験・研究へ発展させています。</p><a class="button" href="#work">開発内容を見る <span aria-hidden="true">↘</span></a></div>
+<aside class="diagram" aria-label="つながる流れを考える"><p class="diagram-title">つながる流れを考える</p>
+<ol class="flow"><li>クライアント</li><li>セッション</li><li>試合</li><li>プレイヤーデータ</li></ol><p class="diagram-note">ゲームプレイ · 接続状態 · データ保存</p></aside></div>
+<div class="skills"><span>C++</span><span>C# / UNITY</span><span>WINDOWS / IOCP</span><span>NETWORKING</span><span>PYTHON / RESEARCH</span></div>
+<section id="work"><div class="section-head"><div><span class="section-num">01 / DEVELOPMENT</span><h2>主な開発</h2></div><p>担当した実装、システム間の連携、確認できる根拠を紹介します。</p></div>
+<article class="project">
+<div><p class="meta">開発継続中 · ソース非公開</p><h3>Project Vector</h3><p class="project-desc">チーム開発のマルチプレイヤーFPSで、C++ WindowsサーバーとUnityクライアントの連携を担当しています。</p>
+<div class="stack"><span>C++</span><span>IOCP</span><span>C#</span><span>Unity</span></div></div>
+<div><p class="label">担当範囲</p><ul class="contributions"><li>IOCP接続処理、セッション、パケットディスパッチ。</li><li>試合ライフサイクル・再接続状態、プロフィール・キャリア・ショップ連携。</li><li>ゲーム通信、スキル連携、クライアント検証ツール。</li></ul>
+<p class="note">開発中です。現在の検証は商用規模の証明ではなく、2クライアントの試合・2台のPCでの音声検証は別の課題です。</p><span class="private">ソースは非公開を維持</span></div></article><article class="project">
+<div><p class="meta">マルチプレイヤー · 公開ソース</p><h3>BNB / BnBServer</h3><p class="project-desc">マルチプレイヤーゲームの開発から生まれた「ゲーム内価格をどう決めるか」という問いが、価格政策研究につながりました。</p>
+<div class="stack"><span>C++</span><span>C#</span><span>Unity</span><span>TCP</span></div></div>
+<div><p class="label">担当範囲</p><ul class="contributions"><li>クライアント・サーバーのパケット処理、ルーム・試合連携。</li><li>報酬、プレイヤーデータ、ショップ関連フロー。</li><li>CISC-W 2025ポスター研究での価格政策シミュレーション。</li></ul>
+<p class="note">チームのクライアント開発と担当サーバー作業を区別します。価格研究はシミュレーションであり、実サービスの売上増加を示すものではありません。</p><div class="links"><a href="https://github.com/YSL-RyuDo/BNB/blob/main/README.ja.md">クライアント・担当記録 <span aria-hidden="true">↗</span></a><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/README.ja.md">サーバーソース <span aria-hidden="true">↗</span></a></div></div></article><article class="project">
+<div><p class="meta">チーム開発 · 担当記録用フォーク</p><h3>DeathGuider</h3><p class="project-desc">O2CUBEチームプロジェクトの経営システムを担当しました。原本とのつながりと開発履歴を保持するフォークで貢献を記録しています。</p>
+<div class="stack"><span>C#</span><span>Unity</span><span>O2CUBE</span></div></div>
+<div><p class="label">担当範囲</p><ul class="contributions"><li>バス・囚人管理、保管、日付進行。</li><li>訓練・回復・侵食、研究所・鍛冶施設。</li><li>戦闘準備の人員・装備選択と空パーティー入場防止。</li></ul>
+<p class="note">0.23Verで本人が作成したコミットを根拠として示しています。戦闘AI・手続き型マップ・他メンバーのシステムは担当範囲に含めません。</p><div class="links"><a href="https://github.com/YSL-RyuDo/DeathGuider/blob/0.23Ver/README.ja.md">担当記録フォーク <span aria-hidden="true">↗</span></a><a href="https://github.com/vliza321/DeathGuider">元のチームリポジトリ <span aria-hidden="true">↗</span></a></div></div></article><details class="more"><summary>その他の開発経験</summary><p>Magicwar・DumbGuysのマルチプレイヤー連携、Cylinderの会話・データ・シーン連携、RE:BOUND・Moonlit Hotelのゲーム試作、PitchLabのリアルタイム音声処理・分析にも取り組みました。各リポジトリは既存の非公開状態を維持しています。</p></details></section></div>
+<section id="research" class="research"><div class="wrap"><div class="section-head"><div><span class="section-num">02 / RESEARCH</span><h2>研究</h2></div><p>ゲームシステムの課題から発展した、互いに独立した3つの研究です。</p></div>
+<div class="research-grid"><article class="research-card"><p class="meta">WISA 2026 · 済州 · ポスター発表</p>
+<h3>画像を変形すると何が残るか？</h3><p>C2PA検証と知覚ハッシュによるゲーム素材検証です。50画像の実験で、出所情報が失われる条件と類似画像検索の失敗条件を分析しました。</p><p class="role">筆頭著者・ポスター発表者 · 共著研究</p>
+<a href="https://github.com/YSL-RyuDo/wisa-2026-game-asset-verification/blob/main/README.ja.md">コード・結果・論文 <span aria-hidden="true">↗</span></a></article><article class="research-card"><p class="meta">CISC-W 2025 · ポスター発表</p>
+<h3>ゲーム内価格をどう決めるか？</h3><p>BNB開発時の価格設計の問いを、固定・動的価格政策の研究へ発展させました。シミュレーション上の消費パターンをCNNで分析しました。</p><p class="role">筆頭著者・ポスター発表者 · シミュレーション研究</p>
+<a href="https://github.com/YSL-RyuDo/BNB/blob/main/research/CISC-W_2025_paper.pdf">論文を読む <span aria-hidden="true">↗</span></a></article><article class="research-card"><p class="meta">継続中 · 独立した研究</p>
+<h3>パッケージの複数の出所をたどる。</h3><p>コード・画像特徴と複数親選択によるMODパッケージの出所復元です。アルゴリズム、実験範囲、限界を記録しながら拡張しています。</p><p class="role">WISA・GCTLABとは別のプロジェクト</p>
+<a href="https://github.com/YSL-RyuDo/mod-provenance-research/blob/main/README.ja.md">研究を見る <span aria-hidden="true">↗</span></a></article></div></div></section>
+<section id="about" class="wrap about"><div><span class="section-num">03 / ABOUT</span><h2>実装から積み上げる<br>サーバー開発力。</h2></div>
+<div><p>ゲームサーバーエンジニアを目指し、接続状態・マルチプレイヤー動作・データ保存を一体として理解し、実装しています。チーム開発の担当範囲はコードとコミットで説明し、試作・実験結果・開発中の作業を区別します。</p><div class="links"><a href="https://github.com/YSL-RyuDo">GitHub · YSL-RyuDo <span aria-hidden="true">↗</span></a></div><p class="gctlab">GCTLAB — アップロード検証、ストレージ連携、再試行・永続化、運用フローの共同開発に参加しました。非公開の共同開発として概要のみ掲載し、WISA研究とは区別しています。</p></div></section></main>
+<footer><div class="wrap footer"><strong>Young-Sang Lee / 이영상</strong><span>コード・担当範囲・研究の記録。2026年10月更新。</span></div></footer></body></html>

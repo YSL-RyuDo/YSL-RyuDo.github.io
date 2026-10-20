@@ -188,3 +188,13 @@ a:focus-visible,button:focus-visible{outline-color:#555}
  .masthead .hero-content h1 em{font-size:23px}
  .masthead .hero-content .masthead-intro{font-size:16px}
 }
+
+/* Current server evidence, scoped to the Arcana case study. */
+.server-update{padding:26px;background:#f0efe9;border:1px solid var(--line)}
+.server-update>p{max-width:86ch;overflow-wrap:anywhere}
+.server-update-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin:24px 0}
+.server-update-grid article{min-width:0;border-top:1px solid #c7c6be;padding-top:16px}
+.server-update-grid h3{font-size:18px;line-height:1.5;margin:0 0 10px}
+.server-update-grid p,.verification-scope{font-size:14px;line-height:1.8}
+.verification-scope{color:var(--muted)}
+@media(max-width:760px){.server-update{padding:20px}.server-update-grid{grid-template-columns:1fr;gap:12px}.server-update h2{font-size:25px}}

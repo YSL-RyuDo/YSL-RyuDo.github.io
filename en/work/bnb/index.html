@@ -21,7 +21,7 @@
 <script defer="" src="/assets/js/career.js">
 </script>
 <link href="/assets/css/evidence.css?v=20261021-v1" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-1"/>
+<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-2"/>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -52,7 +52,7 @@
 <p class="case-deck">Seven weapon behaviors, multiplayer rooms and a C++ game server.</p>
 <p class="project-meta">March 2025 to February 2026, 2 programmers and 6 graphics team members</p>
 <p>I implemented the C++ server and Unity weapon behaviors, and connected movement, balloon interactions, match results and purchase feedback.</p>
-<p class="revision-note">October 2026 follow-up: source audit, TCP framing and room isolation fixes, UML and reproducible measurements.</p>
+<p class="revision-note">October 2026 follow-up: room isolation, TCP framing, bounded output queues, lifecycle fixes, UML and 36 measured runs.</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BNB">Unity, BNB</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer">C++, BnBServer</a>
@@ -60,6 +60,7 @@
 </div>
 </div>
 <nav class="case-reading-nav">
+<a href="#output-queue">Output queue design and reproduction</a>
 <a href="#architecture">Architecture</a>
 <a href="#gameplay-authority">Gameplay and authority</a>
 <a href="#implementation">Movement fix</a>
@@ -78,11 +79,11 @@
 <span>Weapon behaviors</span>
 </a>
 <a href="#performance">
-<strong>24</strong>
+<strong>36</strong>
 <span>Measured runs</span>
 </a>
 <a href="#regression">
-<strong>8 / 8</strong>
+<strong>13 / 13</strong>
 <span>Regression checks</span>
 </a>
 </div>
@@ -94,10 +95,94 @@
 <figcaption>Existing four-client gameplay recording. The socket benchmark below runs separately without Unity.</figcaption>
 </figure>
 </section>
+<section class="case-section" id="output-queue">
+<h2>A slow reader must not stop another room</h2>
+<p>After correcting MOVE fan-out, I reproduced another failure: a blocked send held the room lock, so one client that stopped reading prevented a different room from making progress. I moved socket writes to a bounded queue owned by each connection.</p>
+<p>Every stopped-reader baseline run delivered 0 of 300 healthy-room responses before the observation window ended. Every revised run delivered all 300 with no duplicates. This is evidence of isolating a stalled connection, not a claim about Internet latency or maximum player capacity. With no delivered baseline responses, its p95 is undefined; it is not zero and cannot support a speedup ratio.</p>
+<div class="measurement-table" tabindex="0" role="region" aria-label="Healthy-room delivery under a stopped reader">
+<table>
+<caption>Three repetitions per condition and revision. Latency is sender write to observer complete-line receipt, not time inside the server. See raw data for per-run CPU, RSS and delivery records.</caption>
+<thead>
+<tr>
+<th scope="col">Condition / metric</th>
+<th scope="col">Before, room-scoped blocking send</th>
+<th scope="col">After, bounded output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stopped reader, healthy-room deliveries per run</td>
+<td>0 / 300</td>
+<td>300 / 300</td>
+</tr>
+<tr>
+<td>Stopped reader, median run p95</td>
+<td>Undefined, no responses</td>
+<td>13.82 ms</td>
+</tr>
+<tr>
+<td>Quiet, healthy-room deliveries per run</td>
+<td>300 / 300</td>
+<td>300 / 300</td>
+</tr>
+<tr>
+<td>Quiet, median run p95</td>
+<td>14.00 ms</td>
+<td>13.62 ms</td>
+</tr>
+<tr>
+<td>Observed peak threads, 8 connections</td>
+<td>12</td>
+<td>20</td>
+</tr>
+</tbody>
+</table>
+</div>
+<figure class="uml">
+<a href="/assets/slap-squad/output-delivery-en.svg">
+<img src="/assets/slap-squad/output-delivery-en.svg" alt="Healthy-room delivery under a stopped reader" loading="lazy"/>
+</a>
+<figcaption>Healthy-room delivery under a stopped reader</figcaption>
+</figure>
+<p>The comparison uses the room-scoped revision as its baseline. Eight synthetic clients join two four-player waiting rooms. One reader in room 0 pauses reads with a requested 1,024-byte receive buffer. A peer offers 2,048-character chat payloads in bursts of 10 every 20 ms. After one second, room 1 sends 100 MOVE requests at 20 Hz, expecting 300 observer deliveries, followed by one second of drain. Quiet and stopped-reader conditions each run three times per revision, alternating order, on one Windows host over loopback.</p>
+<p>I considered sending after releasing the shared lock, a dedicated writer per connection, and IOCP. Releasing the lock alone would not serialize concurrent writes to the same socket or bound pending data. I chose one writer with a bounded queue to preserve the existing text protocol and handlers while isolating socket waits. IOCP would reduce the per-connection thread cost, but requires a separate redesign of completion handling and buffer lifetime.</p>
+<figure class="uml">
+<a href="/assets/slap-squad/output-sequence-en.svg">
+<img src="/assets/slap-squad/output-sequence-en.svg" alt="One connection owns one queue and one writer" loading="lazy"/>
+</a>
+<figcaption>One connection owns one queue and one writer</figcaption>
+</figure>
+<p>Handlers enqueue complete messages. Only SocketOutput::Run calls Winsock send. The writer combines available messages into batches targeted at 16 KiB and resumes from the returned byte count after a partial send. A single message larger than 16 KiB remains intact. FIFO order is preserved within the queue; concurrent producers are ordered by enqueue acquisition, not by a global game clock.</p>
+<p>Pending payload is limited to 256 KiB and 4,096 frames per connection, including the batch currently being sent. Exceeding either limit disconnects that client. Waiting for space would reintroduce blocking under shared locks; dropping arbitrary messages would corrupt the meaning of chat, purchases and match events. These are experiment limits, not production-tuned capacity estimates. Deque overhead, a temporary batch copy, socket buffers and thread stacks are additional memory.</p>
+<h3>The partial-send loop, from the committed implementation</h3>
+<pre class="source-excerpt">
+<code>size_t offset = 0;
+while (offset &lt; batch.size() &amp;&amp; !stopping_) {
+    const int sent = sender_(socket_, batch.data() + offset, static_cast&lt;int&gt;(batch.size() - offset), 0);
+    {
+        std::lock_guard&lt;std::mutex&gt; lock(mutex_);
+        ++stats_.sendCalls;
+        if (sent &gt; 0) stats_.sentBytes += sent;
+    }
+    if (sent &lt;= 0) { Stop(2); break; }
+    offset += sent;
+}</code>
+</pre>
+<p>Quiet-run latency did not materially improve. With eight connections, observed peak server threads increased from 12 to 20. The stalled baseline used little CPU because it was no longer processing the offered work; that is not an efficiency advantage. This patch retains thread-per-connection reception and adds one writer thread per connection.</p>
+<p>QUIT now delegates cleanup to the receive loop, and SocketOutput owns shutdown, writer join and the final closesocket. Logout removes room membership before clearing identity. Lobby broadcasts copy recipient ownership and IDs under the client lock before building and enqueueing the message. Two room-deletion paths no longer call room-locked operations while holding the client lock.</p>
+<p>Six deterministic tests exercise forced partial writes, four concurrent producers, byte and frame limits, batching and send failure. In the controlled batching test, 1,000 two-byte frames reached the injected sender in two calls, compared with 1,000 calls for a one-call-per-frame model. This counts sender invocations, not network packets, throughput or FPS. Thirteen real-socket regression checks cover the original eight framing/room cases plus invalid purchase numbers, logout/relogin, 20 QUIT/EOF cycles and four simultaneous disconnects. The churn checks returned to the initial thread count.</p>
+<p>Disconnect discards queued messages and is not a graceful delivery guarantee. Enqueue success means acceptance into the queue, not receipt by the peer. Remaining work includes server-wide shutdown, consistent synchronization of legacy session lookups and room pointer lifetimes, purchase persistence, and authoritative hit validation. The measurements below retain the earlier room-fan-out revision so the two changes can be evaluated separately.</p>
+<div class="evidence-links">
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/OUTPUT_QUEUE.md">Output queue design and reproduction</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/compare/737a92c397adb4320cf439d99d148362ce1ca090...9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e">Git diff</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-output-queue">12-run raw data and build provenance</a>
+<a href="/assets/slap-squad/slap-squad-output-queue-20261021.zip">ZIP, 12 runs</a>
+</div>
+</section>
 <section class="case-section" id="architecture">
 <h2>The server and its shared state</h2>
 <p>Server owns a shared ClientHandler and the room, user, map and position managers. AcceptClients creates a detached receive thread for each connection. The protocol is newline-delimited text over blocking Winsock TCP.</p>
-<p>This made it possible to connect login, rooms, matches and the shop in one process. It also means a slow send can hold a shared lock and delay other rooms. The diagram shows the implemented classes, rather than a proposed IOCP or database architecture.</p>
+<p>The follow-up adds a SocketOutput owner per ClientInfo. Shared handlers enqueue while their locks are held; each connection writer performs blocking socket I/O outside those shared locks. The UML shows the current implementation.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/server-classes-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
 <img src="/assets/slap-squad/server-classes-en.svg" alt="The server and its shared state" loading="lazy" decoding="async"/>
@@ -106,8 +191,8 @@
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/737a92c397adb4320cf439d99d148362ce1ca090/TeamOFYServer/Server.h">Server.h</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/737a92c397adb4320cf439d99d148362ce1ca090/TeamOFYServer/Server.cpp">AcceptClients</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.h">Server.h</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.cpp">AcceptClients</a>
 </div>
 </section>
 <section class="case-section" id="gameplay-authority">
@@ -139,10 +224,11 @@
 </figure>
 </section>
 <section class="case-section" id="implementation">
+<p class="revision-note">This diagram records the first room-scoping patch, 737a92c. The output-queue section and current class diagram show the subsequent implementation.</p>
 <h2>The room boundary was not the delivery boundary</h2>
 <p>The original MOVE handler called BroadcastMessageExcept, which sent to every connected client except the sender. With 64 clients in 16 four-player rooms, each move could reach 63 clients although only three were intended recipients. This was a correctness bug as well as unnecessary work.</p>
 <p>The October patch calls BroadcastToRoomExcept, checks the session nickname and finite coordinates, and buffers incoming TCP bytes until a complete newline-delimited message is available. A trailing partial message waits for the next recv. Lines over 4,096 bytes are rejected.</p>
-<p>Keeping the text protocol avoided changing the Unity message format. A length-prefixed binary protocol is another option, but would require coordinated client changes. The current patch addresses framing and MOVE delivery; it does not replace the connection-thread model or implement per-client send queues.</p>
+<p>The first patch preserved the text protocol and Unity message format. A length-prefixed binary protocol would require coordinated client changes. It addressed framing and room delivery; the later bounded output patch is described above.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/movement-sequence-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
 <img src="/assets/slap-squad/movement-sequence-en.svg" alt="The room boundary was not the delivery boundary" loading="lazy" decoding="async"/>
@@ -403,7 +489,7 @@
 </section>
 <section class="case-section" id="next-experiments">
 <h2>What I would test next</h2>
-<p>The measured fix keeps blocking send inside shared locks. The next networking experiment is a per-client bounded output queue, tested with a slow reader and concurrent room transitions. The current harness stops the isolated process before closing clients, so it does not validate graceful shutdown or reconnect behavior.</p>
+<p>The bounded output experiment and client teardown tests are complete. The next concurrency work is a consistent ownership and locking policy for legacy session lookups and room references, plus coordinated server shutdown. IOCP scalability requires another experiment.</p>
 <p>For persistence, the next checks are concurrent purchases and a forced interruption between the two writes. For gameplay authority, client-reported hits and water damage need independent server validation. These are separate failure modes from MOVE fan-out and need separate experiments.</p>
 </section>
 <section class="case-section" id="world-and-pricing">

@@ -21,7 +21,7 @@
 <script defer="" src="/assets/js/career.js">
 </script>
 <link href="/assets/css/evidence.css?v=20261021-v1" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-1"/>
+<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-2"/>
 </head>
 <body>
 <a class="skip" href="#main">本文へ移動</a>
@@ -52,7 +52,7 @@
 <p class="case-deck">7種類の武器、マルチプレイルーム、C++ゲームサーバーの実装。</p>
 <p class="project-meta">2025年3月から2026年2月、プログラマー2名とグラフィック担当6名</p>
 <p>C++サーバーとUnityの武器動作を実装し、移動、水風船の相互作用、試合結果、購入応答を連携させました。</p>
-<p class="revision-note">2026年10月の追加作業: コード検証、TCPフレーミングとルーム別配信の修正、UML作成、反復測定。</p>
+<p class="revision-note">2026年10月の追加作業: ルーム別配信、TCP受信境界、上限付き送信キュー、接続の後処理、UMLと36回の測定。</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BNB">Unity, BNB</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer">C++, BnBServer</a>
@@ -60,6 +60,7 @@
 </div>
 </div>
 <nav class="case-reading-nav">
+<a href="#output-queue">送信キューの設計と再現方法</a>
 <a href="#architecture">サーバー構造</a>
 <a href="#gameplay-authority">ゲームと判定</a>
 <a href="#implementation">移動通知の修正</a>
@@ -78,11 +79,11 @@
 <span>武器の動作</span>
 </a>
 <a href="#performance">
-<strong>24</strong>
+<strong>36</strong>
 <span>反復測定</span>
 </a>
 <a href="#regression">
-<strong>8 / 8</strong>
+<strong>13 / 13</strong>
 <span>回帰検査</span>
 </a>
 </div>
@@ -94,10 +95,94 @@
 <figcaption>既存の4人プレイ動画です。以下のソケット負荷実験はUnityを使わず別に実行しました。</figcaption>
 </figure>
 </section>
+<section class="case-section" id="output-queue">
+<h2>遅い受信者が別のルームを止めないようにする</h2>
+<p>MOVEの配信範囲を修正した後にも問題が残りました。読み取りを止めたクライアントへのsendがブロックするとルームのロックが解放されず、別のルームも進行できません。実際のソケットで再現し、接続ごとに上限付きキューを設けてソケットへの書き込みを分離しました。</p>
+<p>読み取り停止条件では、従来版の別室への応答は3回とも観測時間内に0/300件でした。修正版は毎回300件すべてを配信し、重複はありませんでした。遅い接続の影響を分離した結果であり、インターネット遅延や最大同時接続数の測定ではありません。従来版は応答がないためp95を定義できず、0msや速度向上率として扱いません。</p>
+<div class="measurement-table" tabindex="0" role="region" aria-label="読み取り停止時の別室への応答">
+<table>
+<caption>各条件と各版を3回実行しました。遅延は送信直前から観測者の完全な行の受信までで、サーバー内部の処理時間ではありません。各回のCPU、RSS、応答記録は生データにあります。</caption>
+<thead>
+<tr>
+<th scope="col">条件 / 指標</th>
+<th scope="col">変更前、ルーム別blocking send</th>
+<th scope="col">変更後、上限付き送信キュー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>読み取り停止、各回の別室への配信</td>
+<td>0 / 300</td>
+<td>300 / 300</td>
+</tr>
+<tr>
+<td>読み取り停止、各回p95の中央値</td>
+<td>定義不可、応答なし</td>
+<td>13.82 ms</td>
+</tr>
+<tr>
+<td>通常条件、各回の別室への配信</td>
+<td>300 / 300</td>
+<td>300 / 300</td>
+</tr>
+<tr>
+<td>通常条件、各回p95の中央値</td>
+<td>14.00 ms</td>
+<td>13.62 ms</td>
+</tr>
+<tr>
+<td>観測した最大スレッド数、8接続</td>
+<td>12</td>
+<td>20</td>
+</tr>
+</tbody>
+</table>
+</div>
+<figure class="uml">
+<a href="/assets/slap-squad/output-delivery-ja.svg">
+<img src="/assets/slap-squad/output-delivery-ja.svg" alt="読み取り停止時の別室への応答" loading="lazy"/>
+</a>
+<figcaption>読み取り停止時の別室への応答</figcaption>
+</figure>
+<p>比較元は既にルーム別MOVE配信を実装した版です。仮想クライアント8人が4人ずつ2つの待機ルームに入ります。ルーム0の1人は受信バッファに1,024バイトを要求して読み取りを停止し、同室の別クライアントが2,048文字のチャットを20msごとに10件送ります。1秒後、別室からMOVEを20Hzで100件送り、観測者への300件の配信を確認します。最後に1秒間受信を待ちます。通常条件と読み取り停止条件を各版3回、交互の順序で同じWindows PCのloopback上で実行しました。</p>
+<p>共有ロックを解放して送信する方法、接続ごとの送信スレッド、IOCPを比較しました。ロックを解放するだけでは、同じソケットへの並行書き込みや送信待ちデータの上限を解決できません。既存のテキストプロトコルとハンドラーを維持しながら待機を分離するため、接続ごとの単一writerと上限付きキューを選びました。IOCPは接続ごとのスレッド費用を減らせますが、完了通知とバッファ寿命の設計変更が必要です。</p>
+<figure class="uml">
+<a href="/assets/slap-squad/output-sequence-ja.svg">
+<img src="/assets/slap-squad/output-sequence-ja.svg" alt="1接続が1キューと1writerを所有" loading="lazy"/>
+</a>
+<figcaption>1接続が1キューと1writerを所有</figcaption>
+</figure>
+<p>ハンドラーは完成したメッセージをキューに入れ、Winsock sendはSocketOutput::Runだけが呼びます。待機中のメッセージを16 KiBを目安にまとめ、部分送信では戻り値のバイト数だけ進めて残りを送ります。16 KiBを超える単一メッセージはそのまま扱います。キュー内の順序は維持し、並行する生成元の順序はゲーム全体の時刻ではなくキューのロック取得順です。</p>
+<p>接続ごとの待機payloadは256 KiB、4,096メッセージまでとし、送信中のバッチも含めます。どちらかを超えた接続は切断します。空きを待つと共有ロック内で再び止まり、任意のメッセージを捨てるとチャット、購入、試合イベントの意味を壊すためです。上限は実験用であり、運用環境に合わせた容量ではありません。dequeの管理領域、バッチの一時コピー、ソケットバッファ、スレッドスタックは別のメモリです。</p>
+<h3>コミットした実装の部分送信ループ</h3>
+<pre class="source-excerpt">
+<code>size_t offset = 0;
+while (offset &lt; batch.size() &amp;&amp; !stopping_) {
+    const int sent = sender_(socket_, batch.data() + offset, static_cast&lt;int&gt;(batch.size() - offset), 0);
+    {
+        std::lock_guard&lt;std::mutex&gt; lock(mutex_);
+        ++stats_.sendCalls;
+        if (sent &gt; 0) stats_.sentBytes += sent;
+    }
+    if (sent &lt;= 0) { Stop(2); break; }
+    offset += sent;
+}</code>
+</pre>
+<p>通常条件の遅延は明確には改善しませんでした。8接続で観測した最大サーバースレッド数は12から20へ増えました。停止した従来版のCPU使用率が低いのは処理が進んでいないためです。接続ごとの受信スレッドを残し、送信スレッドを1つずつ追加した費用も示します。</p>
+<p>QUITは受信ループに後処理を任せ、SocketOutputがshutdown、writerのjoin、最後のclosesocketを所有します。ログアウトではIDを消す前にルームから削除します。ロビー通知は接続ロック内で送信先の所有権とIDをコピーし、その後メッセージを作ってキューに入れます。ルーム削除通知の2経路では、接続ロック中にルームのロックを取得する呼び出しを分離しました。</p>
+<p>決定的な6テストで強制的な部分送信、4つの生成スレッド、バイトとメッセージ数の上限、バッチ化、送信失敗を確認しました。制御したバッチ化テストでは2バイトのメッセージ1,000件を注入した送信関数の2回の呼び出しで渡しました。1件1呼び出しのモデルなら1,000回です。これは関数呼び出し数であり、実際のパケット数、スループット、FPSではありません。実ソケット検査は従来の8項目に不正な購入数値、ログアウトと再ログイン、QUIT/EOFの20回反復、4人同時切断を加えた13項目に合格しました。接続反復後のスレッド数は開始時と同じでした。</p>
+<p>切断時は待機メッセージを破棄するため、正常な配信完了を保証する終了処理ではありません。キューへの追加成功も相手の受信完了を意味しません。サーバー全体の終了、既存セッション検索とルームポインタ寿命の一貫した同期、購入の永続化、サーバーでの命中検証は今後の課題です。下の配信範囲の測定は前段階の結果を保持し、2つの変更を別々に評価できるようにしています。</p>
+<div class="evidence-links">
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/OUTPUT_QUEUE.ja.md">送信キューの設計と再現方法</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/compare/737a92c397adb4320cf439d99d148362ce1ca090...9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e">Git diff</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-output-queue">12回の生データとビルド根拠</a>
+<a href="/assets/slap-squad/slap-squad-output-queue-20261021.zip">ZIP, 12 runs</a>
+</div>
+</section>
 <section class="case-section" id="architecture">
 <h2>サーバーの所有関係と共有状態</h2>
 <p>ServerはClientHandlerとルーム、ユーザー、マップ、位置のマネージャーを所有します。AcceptClientsは接続ごとに受信スレッドを生成してdetachします。通信は改行区切りのテキストを使うblocking Winsock TCPです。</p>
-<p>ログイン、ルーム、試合、ショップを1プロセスで連携する構成です。一方、共有ロックを保持した送信は、受信の遅いクライアントによって他のルームも遅延させる可能性があります。UMLは実際のクラスと参照関係を示します。</p>
+<p>追加修正ではClientInfoごとにSocketOutputを所有します。共有ハンドラーはロック区間でキューに追加し、接続ごとのwriterが共有ロックの外でblocking送信を行います。UMLは現在の実装です。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/server-classes-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
 <img src="/assets/slap-squad/server-classes-ja.svg" alt="サーバーの所有関係と共有状態" loading="lazy" decoding="async"/>
@@ -106,8 +191,8 @@
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/737a92c397adb4320cf439d99d148362ce1ca090/TeamOFYServer/Server.h">Server.h</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/737a92c397adb4320cf439d99d148362ce1ca090/TeamOFYServer/Server.cpp">AcceptClients</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.h">Server.h</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.cpp">AcceptClients</a>
 </div>
 </section>
 <section class="case-section" id="gameplay-authority">
@@ -139,10 +224,11 @@
 </figure>
 </section>
 <section class="case-section" id="implementation">
+<p class="revision-note">このフローは最初のルーム別配信修正737a92cを記録しています。その後の実装は送信キュー節と現在のクラス図に示します。</p>
 <h2>ルーム境界と配信範囲が一致していませんでした</h2>
 <p>従来のMOVE処理はBroadcastMessageExceptを呼び、送信者以外の全接続へ通知していました。4人ずつ16ルームに接続する64人条件では、本来3人に届くべき更新が最大63人に届きます。余分な負荷だけでなく、ルーム境界を破る動作でした。</p>
 <p>10月の修正ではBroadcastToRoomExceptに切り替え、セッションの名前と有限な座標を検査しました。TCPの受信バイトを改行まで蓄積し、完成したメッセージだけを処理します。未完の末尾は次のrecvまで保持し、4,096バイトを超える行は拒否します。</p>
-<p>テキスト形式を維持することでUnityのメッセージ形式を変更せずに修正しました。長さを先頭に付けるバイナリ形式も選択肢ですが、クライアントとサーバーの同時変更が必要です。この修正はフレーミングとMOVE配信を対象とし、接続ごとのスレッドや送信キューまで置き換えてはいません。</p>
+<p>最初の修正はテキストプロトコルとUnityのメッセージ形式を維持しました。長さを先頭に置くバイナリ形式には双方の変更が必要です。受信境界とルーム配信を先に修正し、その後に上記の送信キューを追加しました。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/movement-sequence-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
 <img src="/assets/slap-squad/movement-sequence-ja.svg" alt="ルーム境界と配信範囲が一致していませんでした" loading="lazy" decoding="async"/>
@@ -403,7 +489,7 @@
 </section>
 <section class="case-section" id="next-experiments">
 <h2>次に検証すること</h2>
-<p>今回の修正でも共有ロック内のblocking sendは残っています。次の実験は接続ごとに上限付き送信キューを設け、遅い受信者と同時ルーム移動を検証することです。現在のツールはソケットを閉じる前に隔離サーバーを終了するため、正常終了や再接続の検証は含みません。</p>
+<p>上限付き送信キューの実験とクライアント終了の検査を完了しました。次の並行処理の課題は既存セッション検索とルーム参照の一貫した所有権とロック方針、およびサーバー全体の終了です。IOCPへの拡張には別の実験が必要です。</p>
 <p>永続化では同時購入と2つの保存の間での強制終了を確認する必要があります。ゲーム判定ではクライアントが報告する命中と水流ダメージに独立したサーバー検証が必要です。MOVEの配信範囲とは異なる故障モードなので、個別の実験が必要です。</p>
 </section>
 <section class="case-section" id="world-and-pricing">

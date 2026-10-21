@@ -1,0 +1,82 @@
+{
+  "sword": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "start_s": 0,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "753abbf765769685534969b8ca4ec3a4faff2d241602973d99864af740ab789b",
+    "bytes": 140353
+  },
+  "arrow": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "start_s": 10,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "756e63e568339991590536dafa36155bde963418e07d5666c0e3141d2b53609e",
+    "bytes": 122104
+  },
+  "spell": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "start_s": 20,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "ccd84ba7b3b03546fe84cf2a9334166d8dd229339917babf6464284edcbeafcd",
+    "bytes": 132700
+  },
+  "mace": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "start_s": 30,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "dbab71597f3f45fccf1e376393b0c000a077c20a091cb9c33358cc7b1fac9304",
+    "bytes": 174735
+  },
+  "melody": {
+    "source": "/assets/evidence/slap-weapons-second.mp4",
+    "start_s": 0,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "e5f2266a187eb9fb10047ee4b0a72b30d5e0c0865be0b6ff780b707e8ff40b1d",
+    "bytes": 110572
+  },
+  "pitchfork": {
+    "source": "/assets/evidence/slap-weapons-second.mp4",
+    "start_s": 10,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "4fcc5b1ebcd08c5219485abe6f15ca146c69639cd02d1e02fa67d2a3c26ed41f",
+    "bytes": 138000
+  },
+  "laser": {
+    "source": "/assets/evidence/slap-weapons-second.mp4",
+    "start_s": 20,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "9673673539655e5deba468cfcfa9fc02c01a82e236886f2653754690c690658c",
+    "bytes": 128579
+  },
+  "movement": {
+    "source": "/assets/evidence/slap-four-play.mp4",
+    "start_s": 2,
+    "duration_s": 8,
+    "audio": false,
+    "sha256": "add5d4ed384cb003701a833de33f86b20d4f9438dd92550a9d31975f2687391b",
+    "bytes": 155364
+  },
+  "balloons": {
+    "source": "/assets/evidence/slap-four-play.mp4",
+    "start_s": 17,
+    "duration_s": 10,
+    "audio": false,
+    "sha256": "87aab817fd107d671ec4668c790e35bab80b0f113c1dedba4db0a11ff72af87d",
+    "bytes": 270083
+  },
+  "shop": {
+    "source": "/assets/evidence/slap-shop-confirmation.mp4",
+    "start_s": 0,
+    "duration_s": 11,
+    "audio": false,
+    "sha256": "9ff0295cdaec5b0c362d30831a10a2c8ee30aff2553568f8bd496a2262e314ee",
+    "bytes": 103718
+  }
+}

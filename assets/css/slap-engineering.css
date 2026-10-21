@@ -34,3 +34,5 @@
 .slap-case .source-excerpt{max-width:100%;overflow-x:auto;background:#f1eee7;border:1px solid #d8d3c8;padding:20px;font-size:13px;line-height:1.65;tab-size:4}.slap-case .source-excerpt code{white-space:pre}.slap-case .case-section h3{margin-top:30px;font-size:19px}
 
 .slap-case #output-queue>h2{max-width:none;text-wrap:balance}
+
+.slap-case .historical-stage{border-block:1px solid #ccc5b7;padding:24px 0}.slap-case .historical-stage>summary{font-size:18px;font-weight:600;cursor:pointer}.slap-case #iocp>h2{max-width:none;text-wrap:balance}

@@ -21,7 +21,10 @@
 <script defer="" src="/assets/js/career.js">
 </script>
 <link href="/assets/css/evidence.css?v=20261021-v1" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-2"/>
+<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-3"/>
+<link rel="stylesheet" href="/assets/css/slap-media.css?v=20261021-3"/>
+<script defer src="/assets/js/slap-media.js?v=20261021-4">
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -52,7 +55,7 @@
 <p class="case-deck">Seven weapon behaviors, multiplayer rooms and a C++ game server.</p>
 <p class="project-meta">March 2025 to February 2026, 2 programmers and 6 graphics team members</p>
 <p>I implemented the C++ server and Unity weapon behaviors, and connected movement, balloon interactions, match results and purchase feedback.</p>
-<p class="revision-note">October 2026 follow-up: room isolation, TCP framing, bounded output queues, lifecycle fixes, UML and 36 measured runs.</p>
+<p class="revision-note">October 2026 follow-up: room delivery and TCP framing fixes, IOCP output, startup attack-table cache, UML, reproducible measurements and gameplay clips.</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BNB">Unity, BNB</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer">C++, BnBServer</a>
@@ -60,6 +63,7 @@
 </div>
 </div>
 <nav class="case-reading-nav">
+<a href="#iocp">IOCP</a>
 <a href="#output-queue">Output queue design and reproduction</a>
 <a href="#architecture">Architecture</a>
 <a href="#gameplay-authority">Gameplay and authority</a>
@@ -79,11 +83,11 @@
 <span>Weapon behaviors</span>
 </a>
 <a href="#performance">
-<strong>36</strong>
+<strong>76</strong>
 <span>Measured runs</span>
 </a>
 <a href="#regression">
-<strong>13 / 13</strong>
+<strong>14 / 14</strong>
 <span>Regression checks</span>
 </a>
 </div>
@@ -95,8 +99,80 @@
 <figcaption>Existing four-client gameplay recording. The socket benchmark below runs separately without Unity.</figcaption>
 </figure>
 </section>
+<section class="case-section" id="iocp">
+<h2>Reducing output-thread cost without losing slow-reader isolation</h2>
+<p>The first bounded-queue fix prevented a stalled reader from blocking other rooms, but created a writer thread for every connection. I replaced those writers with one shared IOCP output worker. Receive threads remain per connection.</p>
+<p>At 64 connections, the median observed peak thread count fell from 132 to 69, and server CPU from 12.03% to 7.34% of one logical core. Median peak RSS fell from 16.03 to 14.49 MiB. The p95 median increased from 14.81 to 15.35 ms. This is a reduction in resource cost, not a claim that every response became faster.</p>
+<div class="measurement-table" tabindex="0">
+<table>
+<thead>
+<tr>
+<th scope="col">Connections</th>
+<th scope="col">Threads, before → after</th>
+<th scope="col">CPU %, before → after</th>
+<th scope="col">p95 ms, before → after</th>
+<th scope="col">Peak RSS MiB, before → after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8</td>
+<td>20 → 13</td>
+<td>1.87 → 1.72</td>
+<td>12.41 → 15.31</td>
+<td>11.65 → 11.45</td>
+</tr>
+<tr>
+<td>32</td>
+<td>68 → 37</td>
+<td>11.09 → 4.06</td>
+<td>13.53 → 14.16</td>
+<td>13.60 → 12.83</td>
+</tr>
+<tr>
+<td>64</td>
+<td>132 → 69</td>
+<td>12.03 → 7.34</td>
+<td>14.81 → 15.35</td>
+<td>16.03 → 14.49</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Same Windows machine, Release x64, TCP loopback, 4 clients per room, MOVE at 20 Hz per client. Each variant has three runs per connection count, with 2 s warmup, 10 s measurement and 2 s drain. Variant order alternates. Values below are medians of per-run values; p95 is the median of run p95s. CPU 100% means one logical core. These populated waiting-room tests exclude Unity rendering, WAN traffic and full battle simulation.</p>
+<figure class="uml">
+<a href="/assets/slap-squad/iocp-cost-en.svg">
+<img src="/assets/slap-squad/iocp-cost-en.svg" loading="lazy" alt="Output cost under the same MOVE workload"/>
+</a>
+<figcaption>Output cost under the same MOVE workload</figcaption>
+</figure>
+<p>In the separate stopped-reader test, one client in room A stops receiving. All probes stay inside healthy room B. Both the old bounded queue and the IOCP version delivered 300/300 B-room responses in each of three runs. Their p95 medians were 13.94 and 11.31 ms. The historical 0/300 → 300/300 chart below belongs to the earlier blocking-send fix, not this IOCP comparison.</p>
+<p>A fixed pool of blocking send workers would limit thread count, but enough stalled peers could occupy every worker. Overlapped WSASend allows a slow socket to remain pending without tying up the completion worker. I selected one output worker for the measured range of 8–64 connections; these tests do not establish a production capacity limit or the optimal worker count.</p>
+<figure class="uml">
+<a href="/assets/slap-squad/iocp-sequence-en.svg">
+<img src="/assets/slap-squad/iocp-sequence-en.svg" loading="lazy" alt="IOCP output, completion ownership and cancellation"/>
+</a>
+<figcaption>IOCP output, completion ownership and cancellation</figcaption>
+</figure>
+<p>Each connection keeps its own 256 KiB / 4,096-frame limit, including the in-flight batch. Only one operation is outstanding per connection, preserving order. A batch targets 16 KiB. Completions advance partial writes; the next batch returns to the shared completion queue to give other sockets a turn. The operation retains both its byte buffer and the connection until completion, including cancellation. Enqueue success means accepted for sending, not received by the peer.</p>
+<h3>Removing per-hit CSV reads</h3>
+<p>GetAttackByIndex reopened and parsed CharStat.csv for every HIT. The server now validates and loads the seven-entry attack table before accepting connections, then reads an immutable in-memory map. Unknown indices still return zero. Invalid startup data fails loading; changes to the file require a restart. This is a deliberate startup-snapshot policy, not hot reload or a database migration.</p>
+<p>Actual UserManager code, 100,000 lookups, five alternating runs per variant, matching checksums. Warm filesystem cache; initial loading is excluded. Median elapsed time: 9044.14 ms → 0.2805 ms. This isolates file-open/parsing work versus a tiny hot map. It must not be presented as an equivalent speedup in the game or server throughput.</p>
+<p>The Unity receiver also dispatched the incomplete final fragment returned by Split, and decoded UTF-8 separately for each TCP read. I added a 64 KiB bounded byte accumulator that dispatches only complete newline-delimited messages and decodes UTF-8 after framing. Tests cover fragmented/coalesced messages, split Korean/Japanese characters, exact size limits and malformed UTF-8. This is a correctness fix; no Unity FPS improvement was measured.</p>
+<p>Validation: 7 output unit checks, 8 socket framing/room checks, 5 connection-lifecycle checks, and a real-socket HIT check delivering 28 expected damage responses without cross-room delivery. Startup-cache and standalone C# framing tests also passed. The 18 MOVE runs had no missing, duplicated, malformed or cross-room messages. End-to-end Unity gameplay and long-duration soak tests remain separate work.</p>
+<p>The three-run sample is too small to claim statistical significance. p95 increased in all three MOVE connection-count medians, while CPU and thread cost fell. Receive threads still scale with connections. The CSV persistence and room lifetime risks listed in the audit are not solved by IOCP.</p>
+<div class="evidence-links">
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/IOCP.md">Implementation and reproduction</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-iocp">Raw measurements</a>
+<a href="/assets/slap-squad/slap-squad-iocp-20261021.zip">ZIP, 40 runs</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/AUDIT.md">Code audit and remaining work</a>
+</div>
+</section>
+<details class="historical-stage">
+<summary>Earlier fix: isolating a stalled reader</summary>
 <section class="case-section" id="output-queue">
-<h2>A slow reader must not stop another room</h2>
+<h2>Earlier fix: isolating a stalled reader</h2>
+<p>Earlier stage, one blocking writer per connection. The current implementation is the IOCP version above. These original measurements are retained as history.</p>
 <p>After correcting MOVE fan-out, I reproduced another failure: a blocked send held the room lock, so one client that stopped reading prevented a different room from making progress. I moved socket writes to a bounded queue owned by each connection.</p>
 <p>Every stopped-reader baseline run delivered 0 of 300 healthy-room responses before the observation window ended. Every revised run delivered all 300 with no duplicates. This is evidence of isolating a stalled connection, not a claim about Internet latency or maximum player capacity. With no delivered baseline responses, its p95 is undefined; it is not zero and cannot support a speedup ratio.</p>
 <div class="measurement-table" tabindex="0" role="region" aria-label="Healthy-room delivery under a stopped reader">
@@ -179,10 +255,11 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <a href="/assets/slap-squad/slap-squad-output-queue-20261021.zip">ZIP, 12 runs</a>
 </div>
 </section>
+</details>
 <section class="case-section" id="architecture">
 <h2>The server and its shared state</h2>
 <p>Server owns a shared ClientHandler and the room, user, map and position managers. AcceptClients creates a detached receive thread for each connection. The protocol is newline-delimited text over blocking Winsock TCP.</p>
-<p>The follow-up adds a SocketOutput owner per ClientInfo. Shared handlers enqueue while their locks are held; each connection writer performs blocking socket I/O outside those shared locks. The UML shows the current implementation.</p>
+<p>ClientInfo shares ownership of SocketOutput. Handlers enqueue under existing shared-state locks; one IOCP output worker processes completions outside those locks. Each pending operation retains the connection and its immutable bytes. Receive threads remain per connection.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/server-classes-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
 <img src="/assets/slap-squad/server-classes-en.svg" alt="The server and its shared state" loading="lazy" decoding="async"/>
@@ -191,8 +268,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.h">Server.h</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.cpp">AcceptClients</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.h">Server.h</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.cpp">AcceptClients</a>
 </div>
 </section>
 <section class="case-section" id="gameplay-authority">

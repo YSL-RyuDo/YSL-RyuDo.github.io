@@ -21,7 +21,10 @@
 <script defer="" src="/assets/js/career.js">
 </script>
 <link href="/assets/css/evidence.css?v=20261021-v1" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-2"/>
+<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-3"/>
+<link rel="stylesheet" href="/assets/css/slap-media.css?v=20261021-3"/>
+<script defer src="/assets/js/slap-media.js?v=20261021-4">
+</script>
 </head>
 <body>
 <a class="skip" href="#main">本文へ移動</a>
@@ -52,7 +55,7 @@
 <p class="case-deck">7種類の武器、マルチプレイルーム、C++ゲームサーバーの実装。</p>
 <p class="project-meta">2025年3月から2026年2月、プログラマー2名とグラフィック担当6名</p>
 <p>C++サーバーとUnityの武器動作を実装し、移動、水風船の相互作用、試合結果、購入応答を連携させました。</p>
-<p class="revision-note">2026年10月の追加作業: ルーム別配信、TCP受信境界、上限付き送信キュー、接続の後処理、UMLと36回の測定。</p>
+<p class="revision-note">2026年10月の追加作業: ルーム配信とTCPフレーミング修正、IOCP送信、起動時攻撃力キャッシュ、UML、再現可能な測定、プレイ映像。</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BNB">Unity, BNB</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer">C++, BnBServer</a>
@@ -60,6 +63,7 @@
 </div>
 </div>
 <nav class="case-reading-nav">
+<a href="#iocp">IOCP</a>
 <a href="#output-queue">送信キューの設計と再現方法</a>
 <a href="#architecture">サーバー構造</a>
 <a href="#gameplay-authority">ゲームと判定</a>
@@ -79,11 +83,11 @@
 <span>武器の動作</span>
 </a>
 <a href="#performance">
-<strong>36</strong>
+<strong>76</strong>
 <span>反復測定</span>
 </a>
 <a href="#regression">
-<strong>13 / 13</strong>
+<strong>14 / 14</strong>
 <span>回帰検査</span>
 </a>
 </div>
@@ -95,11 +99,83 @@
 <figcaption>既存の4人プレイ動画です。以下のソケット負荷実験はUnityを使わず別に実行しました。</figcaption>
 </figure>
 </section>
+<section class="case-section" id="iocp">
+<h2>遅い受信者の分離を維持しながら送信スレッドを削減</h2>
+<p>最初の上限付きキューは遅い受信者による他ルームの停止を防ぎましたが、接続ごとに送信スレッドを追加しました。この送信側を共通のIOCPワーカー1本へ変更しました。受信スレッドは引き続き接続ごとに存在します。</p>
+<p>64接続で、観測した最大スレッド数の中央値は132から69、サーバーCPUは論理コア1個基準で12.03%から7.34%に減少しました。最大RSSの中央値は16.03から14.49 MiBになりました。一方、p95の中央値は14.81から15.35 msに増えました。資源コストの削減であり、すべての応答が速くなったという結果ではありません。</p>
+<div class="measurement-table" tabindex="0">
+<table>
+<thead>
+<tr>
+<th scope="col">接続数</th>
+<th scope="col">スレッド, 前 → 後</th>
+<th scope="col">CPU %, 前 → 後</th>
+<th scope="col">p95 ms, 前 → 後</th>
+<th scope="col">最大RSS MiB, 前 → 後</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8</td>
+<td>20 → 13</td>
+<td>1.87 → 1.72</td>
+<td>12.41 → 15.31</td>
+<td>11.65 → 11.45</td>
+</tr>
+<tr>
+<td>32</td>
+<td>68 → 37</td>
+<td>11.09 → 4.06</td>
+<td>13.53 → 14.16</td>
+<td>13.60 → 12.83</td>
+</tr>
+<tr>
+<td>64</td>
+<td>132 → 69</td>
+<td>12.03 → 7.34</td>
+<td>14.81 → 15.35</td>
+<td>16.03 → 14.49</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>同一Windows機、Release x64、TCPループバック、1ルーム4人、各クライアント20 HzのMOVEです。接続数とバージョンごとに3回、準備2秒、測定10秒、受信待ち2秒を設定し、実行順を交互にしました。表は実行ごとの値の中央値で、p95も各実行のp95の中央値です。CPU 100%は論理コア1個です。参加者のいる待機ルームの配信経路を測定し、Unity描画、WAN、戦闘全体のシミュレーションは含みません。</p>
+<figure class="uml">
+<a href="/assets/slap-squad/iocp-cost-ja.svg">
+<img src="/assets/slap-squad/iocp-cost-ja.svg" loading="lazy" alt="同じMOVE負荷で比較した送信コスト"/>
+</a>
+<figcaption>同じMOVE負荷で比較した送信コスト</figcaption>
+</figure>
+<p>別の読み取り停止試験では、Aルームの1クライアントが受信を止めます。確認用の要求と応答は正常なBルーム内だけで交換します。従来の上限付きキューとIOCP版は、どちらも3回それぞれ300/300応答を届けました。p95の中央値は13.94と11.31 msです。下の0/300 → 300/300の図は以前のblocking send修正の記録で、今回のIOCP比較とは別です。</p>
+<p>blocking sendを固定数のワーカープールへ移すだけでは、遅い接続が全ワーカーを占有する可能性があります。overlapped WSASendならソケットの送信を保留したまま完了ワーカーを返せます。測定した8～64接続には送信ワーカー1本を採用しました。本番環境の最大同時接続数や最適なワーカー数を確定した実験ではありません。</p>
+<figure class="uml">
+<a href="/assets/slap-squad/iocp-sequence-ja.svg">
+<img src="/assets/slap-squad/iocp-sequence-ja.svg" loading="lazy" alt="IOCP送信、完了操作の所有権とキャンセル"/>
+</a>
+<figcaption>IOCP送信、完了操作の所有権とキャンセル</figcaption>
+</figure>
+<p>接続ごとの256 KiB / 4,096メッセージの上限には送信中のバッチも含めます。接続ごとに未完了操作を1個にして順序を保ち、16 KiBを目安にまとめます。部分完了は残りのバイトから再開します。次のバッチは共有完了キューに戻して他の接続にも処理機会を渡します。キャンセル時も完了通知まで操作がバッファと接続を所有します。キューへの追加成功は相手の受信完了ではありません。</p>
+<h3>HITごとのCSV読み取りを削除</h3>
+<p>GetAttackByIndexはHITごとにCharStat.csvを開いて解析していました。接続受付前に7件の攻撃力を検証して読み込み、その後は変更しないメモリ上のマップを参照します。不明なインデックスは従来どおり0です。不正な開始データでは読み込みが失敗し、ファイル変更の反映には再起動が必要です。起動時スナップショットという方針であり、ホットリロードやDB移行ではありません。</p>
+<p>実際のUserManagerコードで10万回の参照を各版5回交互に実行し、全チェックサムが一致しました。ファイルキャッシュが温まった条件で、初期読み込みは除外しています。所要時間の中央値は9044.14 ms → 0.2805 msでした。ファイルの反復オープンと解析を小さなメモリマップ参照と比較したマイクロベンチマークで、ゲームやサーバー全体の同率の高速化を意味しません。</p>
+<p>Unity受信部はSplit結果の未完成な末尾も処理し、TCP受信片ごとにUTF-8をデコードしていました。64 KiB上限のバイト蓄積器で改行まで完成したメッセージだけを処理し、その後UTF-8を解釈するように変更しました。分割、結合、韓国語と日本語の途中でのバイト分割、サイズ境界、不正UTF-8を検査しました。正確性の修正でありUnityのFPS改善は測定していません。</p>
+<p>送信単体検査7件、実ソケットのフレーミングとルーム検査8件、接続終了検査5件が通過しました。実際のHIT経路でも期待した28応答と他ルーム配信0件を確認しました。起動時キャッシュと独立C#受信パーサーの検査も通過しました。MOVEの18回で欠落、重複、不正形式、他ルーム配信はありませんでした。Unity全体のプレイと長時間負荷は別途検証が必要です。</p>
+<p>3回の標本で統計的有意性は主張しません。MOVEの3接続数条件すべてでp95の中央値が増加し、CPUとスレッドのコストは減少しました。受信スレッドは依然として接続数に比例します。CSV永続化とルーム寿命の問題はIOCPで解決されず、監査記録に残しています。</p>
+<div class="evidence-links">
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/IOCP.ja.md">実装と再現方法</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-iocp">測定原資料</a>
+<a href="/assets/slap-squad/slap-squad-iocp-20261021.zip">ZIP, 40 runs</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/AUDIT.ja.md">コード点検と残る作業</a>
+</div>
+</section>
+<details class="historical-stage">
+<summary>以前の修正: 遅い受信者の影響を分離</summary>
 <section class="case-section" id="output-queue">
-<h2>遅い受信者が別のルームを止めないようにする</h2>
+<h2>以前の修正: 遅い受信者の影響を分離</h2>
+<p>以前の段階の記録です。当時は接続ごとにblocking送信スレッドを設けました。現在の実装は上記のIOCP版で、旧測定値は変更履歴として保持します。</p>
 <p>MOVEの配信範囲を修正した後にも問題が残りました。読み取りを止めたクライアントへのsendがブロックするとルームのロックが解放されず、別のルームも進行できません。実際のソケットで再現し、接続ごとに上限付きキューを設けてソケットへの書き込みを分離しました。</p>
 <p>読み取り停止条件では、従来版の別室への応答は3回とも観測時間内に0/300件でした。修正版は毎回300件すべてを配信し、重複はありませんでした。遅い接続の影響を分離した結果であり、インターネット遅延や最大同時接続数の測定ではありません。従来版は応答がないためp95を定義できず、0msや速度向上率として扱いません。</p>
-<div class="measurement-table" tabindex="0" role="region" aria-label="読み取り停止時の別室への応答">
+<div class="measurement-table" tabindex="0" role="region" aria-label="A室の受信停止時、正常なB室内の応答成功数">
 <table>
 <caption>各条件と各版を3回実行しました。遅延は送信直前から観測者の完全な行の受信までで、サーバー内部の処理時間ではありません。各回のCPU、RSS、応答記録は生データにあります。</caption>
 <thead>
@@ -140,9 +216,9 @@
 </div>
 <figure class="uml">
 <a href="/assets/slap-squad/output-delivery-ja.svg">
-<img src="/assets/slap-squad/output-delivery-ja.svg" alt="読み取り停止時の別室への応答" loading="lazy"/>
+<img src="/assets/slap-squad/output-delivery-ja.svg" alt="A室の受信停止時、正常なB室内の応答成功数" loading="lazy"/>
 </a>
-<figcaption>読み取り停止時の別室への応答</figcaption>
+<figcaption>A室の受信停止時、正常なB室内の応答成功数</figcaption>
 </figure>
 <p>比較元は既にルーム別MOVE配信を実装した版です。仮想クライアント8人が4人ずつ2つの待機ルームに入ります。ルーム0の1人は受信バッファに1,024バイトを要求して読み取りを停止し、同室の別クライアントが2,048文字のチャットを20msごとに10件送ります。1秒後、別室からMOVEを20Hzで100件送り、観測者への300件の配信を確認します。最後に1秒間受信を待ちます。通常条件と読み取り停止条件を各版3回、交互の順序で同じWindows PCのloopback上で実行しました。</p>
 <p>共有ロックを解放して送信する方法、接続ごとの送信スレッド、IOCPを比較しました。ロックを解放するだけでは、同じソケットへの並行書き込みや送信待ちデータの上限を解決できません。既存のテキストプロトコルとハンドラーを維持しながら待機を分離するため、接続ごとの単一writerと上限付きキューを選びました。IOCPは接続ごとのスレッド費用を減らせますが、完了通知とバッファ寿命の設計変更が必要です。</p>
@@ -179,10 +255,11 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <a href="/assets/slap-squad/slap-squad-output-queue-20261021.zip">ZIP, 12 runs</a>
 </div>
 </section>
+</details>
 <section class="case-section" id="architecture">
 <h2>サーバーの所有関係と共有状態</h2>
 <p>ServerはClientHandlerとルーム、ユーザー、マップ、位置のマネージャーを所有します。AcceptClientsは接続ごとに受信スレッドを生成してdetachします。通信は改行区切りのテキストを使うblocking Winsock TCPです。</p>
-<p>追加修正ではClientInfoごとにSocketOutputを所有します。共有ハンドラーはロック区間でキューに追加し、接続ごとのwriterが共有ロックの外でblocking送信を行います。UMLは現在の実装です。</p>
+<p>ClientInfoがSocketOutputの所有権を共有します。ハンドラーは共有状態のロック内でキューに追加し、共通IOCP送信ワーカーがその外で完了を処理します。未完了操作が接続と送信バイトを保持し、受信スレッドは接続ごとに残ります。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/server-classes-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
 <img src="/assets/slap-squad/server-classes-ja.svg" alt="サーバーの所有関係と共有状態" loading="lazy" decoding="async"/>
@@ -191,8 +268,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.h">Server.h</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e/TeamOFYServer/Server.cpp">AcceptClients</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.h">Server.h</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.cpp">AcceptClients</a>
 </div>
 </section>
 <section class="case-section" id="gameplay-authority">

@@ -58,7 +58,12 @@
       src='/assets/slap-squad/previews/'+name+'.mp4';
       const video=document.createElement('video');video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.poster=name.endsWith('-focus')?'/assets/slap-squad/previews/'+name+'.webp':img.src;video.dataset.src=src;video.setAttribute('aria-hidden','true');
       button.append(video);previews.add(video);observer.observe(video);
-    }else button.append(img.cloneNode(true));
+    }else {
+      const copy=img.cloneNode(true);
+      const width=Number(img.getAttribute('width')),height=Number(img.getAttribute('height'));
+      if(width>0 && height>0)copy.style.aspectRatio=width+' / '+height;
+      button.append(copy);
+    }
     const badge=document.createElement('span');badge.className='slap-media-hint';badge.textContent=words[0];button.append(badge);
     button.addEventListener('click',()=>show(src,text,!!name,button));a.replaceWith(button);
   });

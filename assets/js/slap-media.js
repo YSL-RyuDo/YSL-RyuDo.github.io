@@ -36,7 +36,7 @@
   const mapping = {
     'slap-four-game.webp':'movement','slap-four-map.webp':'balloons','slap-four-balloons.webp':'balloons','slap-shop-after.webp':'shop','slap-shop-before.webp':'shop'
   };
-  ['sword','arrow','spell','mace','melody','pitchfork','laser'].forEach(n=>mapping['slap-weapon-'+n+'.webp']=n);
+  ['sword','arrow','spell','mace','melody','pitchfork','laser'].forEach(n=>mapping['slap-weapon-'+n+'.webp']=n+'-focus');
   const observer=new IntersectionObserver(entries=>{
     entries.forEach(({target,isIntersecting})=>{target.dataset.visible=String(isIntersecting);update(target);});
   },{threshold:.15});
@@ -56,11 +56,17 @@
     let src=url.pathname;
     if(name){
       src='/assets/slap-squad/previews/'+name+'.mp4';
-      const video=document.createElement('video');video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.poster=img.src;video.dataset.src=src;video.setAttribute('aria-hidden','true');
+      const video=document.createElement('video');video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.poster=name.endsWith('-focus')?'/assets/slap-squad/previews/'+name+'.webp':img.src;video.dataset.src=src;video.setAttribute('aria-hidden','true');
       button.append(video);previews.add(video);observer.observe(video);
     }else button.append(img.cloneNode(true));
     const badge=document.createElement('span');badge.className='slap-media-hint';badge.textContent=words[0];button.append(badge);
     button.addEventListener('click',()=>show(src,text,!!name,button));a.replaceWith(button);
+  });
+  // Caption links use the same dialog as the image itself.
+  root.querySelectorAll('a[href]').forEach(a=>{
+    const url=new URL(a.href,location.href);
+    if(url.origin!==location.origin || !/\.(svg|png|jpe?g|webp)$/i.test(url.pathname))return;
+    a.addEventListener('click',e=>{e.preventDefault();show(url.pathname,a.closest('figure')?.querySelector('img')?.alt || a.textContent,false,a);});
   });
   // Existing full recordings retain their controls and get an explicit modal action.
   root.querySelectorAll('video[controls]').forEach(video=>{

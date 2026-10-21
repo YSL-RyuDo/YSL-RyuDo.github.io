@@ -10,3 +10,27 @@
 .slap-media-content img,.slap-media-content video{display:block;width:100%;max-height:75vh;object-fit:contain;background:white}
 .slap-media-caption{margin:12px 0 0;line-height:1.5;font-size:14px}.slap-modal-open{overflow:hidden}
 @media(max-width:600px){.slap-media-dialog{padding:10px}.slap-preview-toggle{margin-left:0}.slap-media-hint{font-size:11px}}
+
+
+/* Keep the explanation and its visual within a normal reading viewport. */
+.slap-case .scope-catalog>article{gap:28px;padding:22px 0;align-items:center}
+.slap-case .scope-catalog figure{margin:12px 0}
+.slap-case .slap-media-trigger img,.slap-case .slap-media-trigger video{max-height:min(340px,44vh);object-fit:contain;aspect-ratio:auto;background:#f2efe8}
+.slap-case .uml{padding:14px;margin:20px 0}
+.slap-case .uml .slap-media-trigger img{max-height:min(360px,44vh)}
+.slap-case .evidence-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.slap-case .evidence-gallery .slap-media-trigger video{max-height:min(270px,36vh)}
+.slap-case .native-evidence-clips video{max-height:min(340px,44vh);object-fit:contain}
+@media(max-width:760px){
+ .slap-case .scope-catalog>article{gap:10px;padding:20px 0}
+ .slap-case .scope-catalog .feature-copy{order:-1}
+ .slap-case .evidence-gallery{grid-template-columns:1fr}
+ .slap-case .slap-media-trigger img,.slap-case .slap-media-trigger video{max-height:34vh}
+}
+
+.slap-case .opening-links{display:flex;flex-wrap:wrap;gap:14px 24px;margin-top:24px}
+.slap-case .table-scroll{max-width:100%;overflow-x:auto}
+.slap-case .case-opening video{max-height:min(320px,42vh);object-fit:contain;background:#f2efe8}
+.slap-case .weapon-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.slap-case .weapon-evidence-grid .slap-media-trigger video{max-height:min(270px,36vh)}
+@media(max-width:760px){.slap-case .weapon-evidence-grid{grid-template-columns:1fr}}

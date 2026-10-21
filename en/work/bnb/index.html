@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -21,9 +22,9 @@
 <script defer="" src="/assets/js/career.js">
 </script>
 <link href="/assets/css/evidence.css?v=20261021-v1" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-3"/>
-<link rel="stylesheet" href="/assets/css/slap-media.css?v=20261021-3"/>
-<script defer src="/assets/js/slap-media.js?v=20261021-4">
+<link href="/assets/css/slap-engineering.css?v=20261021-3" rel="stylesheet"/>
+<link href="/assets/css/slap-media.css?v=20261021-5" rel="stylesheet"/>
+<script defer="" src="/assets/js/slap-media.js?v=20261021-5">
 </script>
 </head>
 <body>
@@ -46,7 +47,7 @@
 </nav>
 </div>
 </header>
-<main id="main" class="slap-case">
+<main class="slap-case" id="main">
 <div class="wrap case">
 <a class="back" href="/en/#work">Portfolio</a>
 <div class="case-hero">
@@ -62,7 +63,7 @@
 <a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/README.md">Full engineering notes</a>
 </div>
 </div>
-<nav class="case-reading-nav">
+<nav class="case-reading-nav"><a href="#state-safety">Storage and room safety</a>
 <a href="#iocp">IOCP</a>
 <a href="#output-queue">Output queue design and reproduction</a>
 <a href="#architecture">Architecture</a>
@@ -75,31 +76,17 @@
 </nav>
 <section class="case-opening" id="gameplay">
 <div>
-<h2>From a playable game to an explainable implementation</h2>
-<p>The case follows three paths through the game: a weapon hit, a movement update and an item purchase. Each connects the Unity behavior to server state, the original implementation choices and evidence that can be inspected or reproduced.</p>
-<div class="case-facts">
-<a href="#full-scope">
-<strong>7</strong>
-<span>Weapon behaviors</span>
-</a>
-<a href="#performance">
-<strong>76</strong>
-<span>Measured runs</span>
-</a>
-<a href="#regression">
-<strong>14 / 14</strong>
-<span>Regression checks</span>
-</a>
-</div>
-</div>
+<h2>Combat systems and a multiplayer server</h2>
+<p>I implemented seven weapon behaviors, movement, balloons and match results in Unity. On the C++ server, I built room management, message delivery, item purchases and persistence.</p>
+<p class="opening-links"><a href="#full-scope">Explore weapon behaviors</a><a href="#state-safety">Read the server changes</a></p></div>
 <figure>
-<video controls muted playsinline preload="none" poster="/assets/evidence/slap-four-balloons.webp" aria-label="Slap Squad, four-player gameplay">
-<source src="/assets/evidence/slap-four-play.mp4" type="video/mp4"/>
+<video aria-label="Sword attack" controls="" muted="" playsinline="" poster="/assets/slap-squad/previews/sword-focus.webp" preload="none">
+<source src="/assets/slap-squad/previews/sword-focus.mp4" type="video/mp4"/>
 </video>
-<figcaption>Existing four-client gameplay recording. The socket benchmark below runs separately without Unity.</figcaption>
+<figcaption>Sword attack</figcaption>
 </figure>
 </section>
-<section class="case-section" id="iocp">
+<section class="case-section" id="state-safety"><h2>CSV transactions and room lifetime</h2><p>A 32-client purchase test exposed a persistence failure: all four item categories wrote through the same temp.csv. Different requests could replace or remove one another’s temporary file. The follow-up change keeps CSV storage but commits a purchase’s balance and ownership together.</p><p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p><p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p><p>The real server purchase test sends two requests per account, with 32 accounts split across character, balloon, emote and icon purchases. Correct persisted balance and ownership: 0/32 before, 32/32 after, in this reproduction. The unit harness also checks 96 concurrent profile/stat commits, 16 simultaneous purchase attempts, seven-file registration, precommit failure rollback and recovery after process termination between two replacements. The room test completes 12 matches while another room moves, checks one reward and one GAME_END per match, and churns 30 temporary rooms.</p><h3>Latency retest</h3><p>The median p95 increased at all three loads. At 64 connections, median CPU fell from 9.22% to 7.65%; at 8 and 32 it increased. Thread counts stayed at 13, 37 and 69. All 624,000 expected deliveries arrived with no cross-room delivery or duplication. This change fixes state correctness; it does not establish a general latency improvement.</p><p>The same MOVE relay harness, Windows host, Release x64, 4 clients per room and 20 messages/s/client are used for both versions. Each load has five runs per version, with alternating order, 2 s warm-up, 10 s measurement and 2 s drain. Latency includes sender and observer event-loop scheduling. CPU 100% means one logical core. This is a waiting-room relay test without Unity rendering or battle simulation.</p><div class="table-scroll"><table><thead><tr><th>Connections</th><th>p95 ms, before / after</th><th>CPU %, before / after</th><th>Peak threads, before / after</th><th>Peak RSS MiB, before / after</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-en.svg"><img alt="Latency retest" loading="lazy" src="/assets/slap-squad/state-retest-en.svg"/></a><figcaption>Median of five runs per version. Lower p95 and CPU are better. Each dot is one run.</figcaption></figure><p>The earlier p95 increase came from three runs per condition and does not identify a cause. A separate 32-client diagnostic changed only server TCP_NODELAY; it did not demonstrate an improvement. Starting the first overlapped send on the receive thread reduced one worker handoff but increased CPU in the pilot, so it was discarded. The final implementation retains IOCP batching. The retest below reports every run and the median rather than attributing all variation to the server.</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.md">Code and test data</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
 <h2>Reducing output-thread cost without losing slow-reader isolation</h2>
 <p>The first bounded-queue fix prevented a stalled reader from blocking other rooms, but created a writer thread for every connection. I replaced those writers with one shared IOCP output worker. Receive threads remain per connection.</p>
 <p>At 64 connections, the median observed peak thread count fell from 132 to 69, and server CPU from 12.03% to 7.34% of one logical core. Median peak RSS fell from 16.03 to 14.49 MiB. The p95 median increased from 14.81 to 15.35 ms. This is a reduction in resource cost, not a claim that every response became faster.</p>
@@ -142,7 +129,7 @@
 <p>Same Windows machine, Release x64, TCP loopback, 4 clients per room, MOVE at 20 Hz per client. Each variant has three runs per connection count, with 2 s warmup, 10 s measurement and 2 s drain. Variant order alternates. Values below are medians of per-run values; p95 is the median of run p95s. CPU 100% means one logical core. These populated waiting-room tests exclude Unity rendering, WAN traffic and full battle simulation.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-cost-en.svg">
-<img src="/assets/slap-squad/iocp-cost-en.svg" loading="lazy" alt="Output cost under the same MOVE workload"/>
+<img alt="Output cost under the same MOVE workload" loading="lazy" src="/assets/slap-squad/iocp-cost-en.svg"/>
 </a>
 <figcaption>Output cost under the same MOVE workload</figcaption>
 </figure>
@@ -150,7 +137,7 @@
 <p>A fixed pool of blocking send workers would limit thread count, but enough stalled peers could occupy every worker. Overlapped WSASend allows a slow socket to remain pending without tying up the completion worker. I selected one output worker for the measured range of 8–64 connections; these tests do not establish a production capacity limit or the optimal worker count.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-sequence-en.svg">
-<img src="/assets/slap-squad/iocp-sequence-en.svg" loading="lazy" alt="IOCP output, completion ownership and cancellation"/>
+<img alt="IOCP output, completion ownership and cancellation" loading="lazy" src="/assets/slap-squad/iocp-sequence-en.svg"/>
 </a>
 <figcaption>IOCP output, completion ownership and cancellation</figcaption>
 </figure>
@@ -160,7 +147,7 @@
 <p>Actual UserManager code, 100,000 lookups, five alternating runs per variant, matching checksums. Warm filesystem cache; initial loading is excluded. Median elapsed time: 9044.14 ms → 0.2805 ms. This isolates file-open/parsing work versus a tiny hot map. It must not be presented as an equivalent speedup in the game or server throughput.</p>
 <p>The Unity receiver also dispatched the incomplete final fragment returned by Split, and decoded UTF-8 separately for each TCP read. I added a 64 KiB bounded byte accumulator that dispatches only complete newline-delimited messages and decodes UTF-8 after framing. Tests cover fragmented/coalesced messages, split Korean/Japanese characters, exact size limits and malformed UTF-8. This is a correctness fix; no Unity FPS improvement was measured.</p>
 <p>Validation: 7 output unit checks, 8 socket framing/room checks, 5 connection-lifecycle checks, and a real-socket HIT check delivering 28 expected damage responses without cross-room delivery. Startup-cache and standalone C# framing tests also passed. The 18 MOVE runs had no missing, duplicated, malformed or cross-room messages. End-to-end Unity gameplay and long-duration soak tests remain separate work.</p>
-<p>The three-run sample is too small to claim statistical significance. p95 increased in all three MOVE connection-count medians, while CPU and thread cost fell. Receive threads still scale with connections. The CSV persistence and room lifetime risks listed in the audit are not solved by IOCP.</p>
+<p>CSV and room safety were addressed in the later state-safety change. The IOCP numbers above remain the original three-run experiment.</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/IOCP.md">Implementation and reproduction</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-iocp">Raw measurements</a>
@@ -175,7 +162,7 @@
 <p>Earlier stage, one blocking writer per connection. The current implementation is the IOCP version above. These original measurements are retained as history.</p>
 <p>After correcting MOVE fan-out, I reproduced another failure: a blocked send held the room lock, so one client that stopped reading prevented a different room from making progress. I moved socket writes to a bounded queue owned by each connection.</p>
 <p>Every stopped-reader baseline run delivered 0 of 300 healthy-room responses before the observation window ended. Every revised run delivered all 300 with no duplicates. This is evidence of isolating a stalled connection, not a claim about Internet latency or maximum player capacity. With no delivered baseline responses, its p95 is undefined; it is not zero and cannot support a speedup ratio.</p>
-<div class="measurement-table" tabindex="0" role="region" aria-label="Healthy-room delivery under a stopped reader">
+<div aria-label="Healthy-room delivery under a stopped reader" class="measurement-table" role="region" tabindex="0">
 <table>
 <caption>Three repetitions per condition and revision. Latency is sender write to observer complete-line receipt, not time inside the server. See raw data for per-run CPU, RSS and delivery records.</caption>
 <thead>
@@ -216,7 +203,7 @@
 </div>
 <figure class="uml">
 <a href="/assets/slap-squad/output-delivery-en.svg">
-<img src="/assets/slap-squad/output-delivery-en.svg" alt="Healthy-room delivery under a stopped reader" loading="lazy"/>
+<img alt="Healthy-room delivery under a stopped reader" loading="lazy" src="/assets/slap-squad/output-delivery-en.svg"/>
 </a>
 <figcaption>Healthy-room delivery under a stopped reader</figcaption>
 </figure>
@@ -224,7 +211,7 @@
 <p>I considered sending after releasing the shared lock, a dedicated writer per connection, and IOCP. Releasing the lock alone would not serialize concurrent writes to the same socket or bound pending data. I chose one writer with a bounded queue to preserve the existing text protocol and handlers while isolating socket waits. IOCP would reduce the per-connection thread cost, but requires a separate redesign of completion handling and buffer lifetime.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/output-sequence-en.svg">
-<img src="/assets/slap-squad/output-sequence-en.svg" alt="One connection owns one queue and one writer" loading="lazy"/>
+<img alt="One connection owns one queue and one writer" loading="lazy" src="/assets/slap-squad/output-sequence-en.svg"/>
 </a>
 <figcaption>One connection owns one queue and one writer</figcaption>
 </figure>
@@ -247,7 +234,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>Quiet-run latency did not materially improve. With eight connections, observed peak server threads increased from 12 to 20. The stalled baseline used little CPU because it was no longer processing the offered work; that is not an efficiency advantage. This patch retains thread-per-connection reception and adds one writer thread per connection.</p>
 <p>QUIT now delegates cleanup to the receive loop, and SocketOutput owns shutdown, writer join and the final closesocket. Logout removes room membership before clearing identity. Lobby broadcasts copy recipient ownership and IDs under the client lock before building and enqueueing the message. Two room-deletion paths no longer call room-locked operations while holding the client lock.</p>
 <p>Six deterministic tests exercise forced partial writes, four concurrent producers, byte and frame limits, batching and send failure. In the controlled batching test, 1,000 two-byte frames reached the injected sender in two calls, compared with 1,000 calls for a one-call-per-frame model. This counts sender invocations, not network packets, throughput or FPS. Thirteen real-socket regression checks cover the original eight framing/room cases plus invalid purchase numbers, logout/relogin, 20 QUIT/EOF cycles and four simultaneous disconnects. The churn checks returned to the initial thread count.</p>
-<p>Disconnect discards queued messages and is not a graceful delivery guarantee. Enqueue success means acceptance into the queue, not receipt by the peer. Remaining work includes server-wide shutdown, consistent synchronization of legacy session lookups and room pointer lifetimes, purchase persistence, and authoritative hit validation. The measurements below retain the earlier room-fan-out revision so the two changes can be evaluated separately.</p>
+<p>CSV and room safety were addressed in the later state-safety change. The IOCP numbers above remain the original three-run experiment.</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/OUTPUT_QUEUE.md">Output queue design and reproduction</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer/compare/737a92c397adb4320cf439d99d148362ce1ca090...9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e">Git diff</a>
@@ -259,10 +246,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <section class="case-section" id="architecture">
 <h2>The server and its shared state</h2>
 <p>Server owns a shared ClientHandler and the room, user, map and position managers. AcceptClients creates a detached receive thread for each connection. The protocol is newline-delimited text over blocking Winsock TCP.</p>
-<p>ClientInfo shares ownership of SocketOutput. Handlers enqueue under existing shared-state locks; one IOCP output worker processes completions outside those locks. Each pending operation retains the connection and its immutable bytes. Receive threads remain per connection.</p>
+<p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p>
 <figure class="uml">
-<a href="/assets/slap-squad/server-classes-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/server-classes-en.svg" alt="The server and its shared state" loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/server-classes-en.svg" rel="noopener" target="_blank">
+<img alt="The server and its shared state" decoding="async" loading="lazy" src="/assets/slap-squad/server-classes-en.svg"/>
 </a>
 <figcaption>The server and its shared state. <a href="/assets/slap-squad/server-classes-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -278,8 +265,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>A Unity weapon reports HIT with the weapon, attacker and target. ClientHandler checks team membership in cooperative mode, selects damage through GetAttackByIndex and delivers DAMAGE to the room. The receiving GameSystem applies that damage and updates the HUD. The server does not independently replay the collision.</p>
 <p>I tried the room-leader approach while learning how rooms work and applying it to an actual game. In BalloonSystem, the room leader sends REMOVE_BALLOON when the timer expires; the server computes the water spread. Client collision reporting still forms part of the trust boundary. Moving collision and timing decisions to the server would require server-side world simulation and separate validation of prediction and correction.</p>
 <figure class="uml">
-<a href="/assets/slap-squad/combat-sequence-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/combat-sequence-en.svg" alt="A reported hit becomes damage in the room" loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/combat-sequence-en.svg" rel="noopener" target="_blank">
+<img alt="A reported hit becomes damage in the room" decoding="async" loading="lazy" src="/assets/slap-squad/combat-sequence-en.svg"/>
 </a>
 <figcaption>A reported hit becomes damage in the room. <a href="/assets/slap-squad/combat-sequence-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -293,8 +280,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <h2>Room lifecycle</h2>
 <p>Waiting, playing and returning from results connect the room UI to the match. The normal start requires at least two players. Cooperative play requires four players split two against two. The result phase below is conceptual: the code stores isInGame, deadUsersByRoom and readyUsersByRoom, not a Results enum.</p>
 <figure class="uml">
-<a href="/assets/slap-squad/room-state-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/room-state-en.svg" alt="Room lifecycle" loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/room-state-en.svg" rel="noopener" target="_blank">
+<img alt="Room lifecycle" decoding="async" loading="lazy" src="/assets/slap-squad/room-state-en.svg"/>
 </a>
 <figcaption>Room lifecycle. <a href="/assets/slap-squad/room-state-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -307,8 +294,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>The October patch calls BroadcastToRoomExcept, checks the session nickname and finite coordinates, and buffers incoming TCP bytes until a complete newline-delimited message is available. A trailing partial message waits for the next recv. Lines over 4,096 bytes are rejected.</p>
 <p>The first patch preserved the text protocol and Unity message format. A length-prefixed binary protocol would require coordinated client changes. It addressed framing and room delivery; the later bounded output patch is described above.</p>
 <figure class="uml">
-<a href="/assets/slap-squad/movement-sequence-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/movement-sequence-en.svg" alt="The room boundary was not the delivery boundary" loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/movement-sequence-en.svg" rel="noopener" target="_blank">
+<img alt="The room boundary was not the delivery boundary" decoding="async" loading="lazy" src="/assets/slap-squad/movement-sequence-en.svg"/>
 </a>
 <figcaption>The room boundary was not the delivery boundary. <a href="/assets/slap-squad/movement-sequence-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -331,7 +318,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>4, 16, 32 and 64 synthetic connections, four clients per room, 20 MOVE requests per second per client. Each variant ran three times with alternating order, two seconds of warm-up, ten seconds of measurement and two seconds to drain responses. The 24 runs use Release x64 builds on an Intel Core i7-14700 with 31.69 GiB RAM, Windows build 26200 and Python 3.10.6.</p>
 <p>The baseline is 304b11b; the patched source is 737a92c. Both use the same fixture and build settings. The harness only changes the listening port and binds the test server to loopback. It creates synthetic accounts in an isolated directory.</p>
 <p>Latency is measured from immediately before the sender writes a request until another client receives the complete response line. It includes the load generator, TCP and OS scheduling. These are populated waiting rooms exercising the actual MOVE handler, not full game simulations or an Internet concurrency limit.</p>
-<div class="measurement-table" tabindex="0" role="region" aria-label="Performance measured on the actual C++ relay">
+<div aria-label="Performance measured on the actual C++ relay" class="measurement-table" role="region" tabindex="0">
 <table>
 <caption>Median of three per-run values. CPU: 100% equals one logical core. Missing and cross-room counts are totals across all three patched runs.</caption>
 <thead>
@@ -381,15 +368,15 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </table>
 </div>
 <figure class="uml">
-<a href="/assets/slap-squad/latency-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/latency-en.svg" alt="Performance measured on the actual C++ relay" loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/latency-en.svg" rel="noopener" target="_blank">
+<img alt="Performance measured on the actual C++ relay" decoding="async" loading="lazy" src="/assets/slap-squad/latency-en.svg"/>
 </a>
 <figcaption>Performance measured on the actual C++ relay. <a href="/assets/slap-squad/latency-en.svg">Open full-size diagram</a>
 </figcaption>
 </figure>
 <figure class="uml">
-<a href="/assets/slap-squad/payload-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/payload-en.svg" alt="At 64 connections, median p95 changed from 4,381.75 ms to 19.91 ms. Received application payload changed from 27.30 MiB to 1.30 MiB per run, approximately 95.2% less. This is explained by restricting each update from up to 63 recipients to three, not by a new network stack." loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/payload-en.svg" rel="noopener" target="_blank">
+<img alt="At 64 connections, median p95 changed from 4,381.75 ms to 19.91 ms. Received application payload changed from 27.30 MiB to 1.30 MiB per run, approximately 95.2% less. This is explained by restricting each update from up to 63 recipients to three, not by a new network stack." decoding="async" loading="lazy" src="/assets/slap-squad/payload-en.svg"/>
 </a>
 <figcaption>At 64 connections, median p95 changed from 4,381.75 ms to 19.91 ms. Received application payload changed from 27.30 MiB to 1.30 MiB per run, approximately 95.2% less. This is explained by restricting each update from up to 63 recipients to three, not by a new network stack.. <a href="/assets/slap-squad/payload-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -407,18 +394,18 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <h2>CSV persistence and confirmed purchase feedback</h2>
 <p>I chose CSV because it was easy to start with before I had learned databases. I planned to replace it later but did not complete that migration. Account, profile, ownership and shop data therefore remain file-backed.</p>
 <p>In my ShopUI change, BuyItem sends the request and disables the button without immediately setting selectedOwned to true. Returned item data refreshes the relevant tab only when that tab is selected. This avoids turning a click into confirmed ownership and keeps a response for one category from replacing another category’s visible content.</p>
-<p>For BUY_ICON, the server checks ownership, price and balance, updates memory, then saves the profile and icon files separately. It returns the balance and item list afterward. Those writes are not one atomic transaction, and the handler does not act on their boolean save results. Waiting for returned ownership improves UI correctness but does not guarantee crash-safe persistence.</p>
-<p>A database migration would need to commit debit and ownership together, define retry identity and handle save failure. Optimistic UI would additionally require rollback. Those are follow-up designs, not completed features of this game.</p>
+<p>A user transaction holds the user-state lock from validation through mutation and commit. Writes build after-images in memory. A flushed redo journal is atomically published before replacing individual CSV files; startup replays an unfinished journal before accepting clients. A failed precommit write rolls memory back. Failure after the journal commit point stops the process with the journal retained for recovery. A directory lease rejects a second server process using the same data directory.</p>
+<p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p>
 <figure class="uml">
-<a href="/assets/slap-squad/shop-sequence-en.svg" target="_blank" rel="noopener" aria-label="Open full-size diagram">
-<img src="/assets/slap-squad/shop-sequence-en.svg" alt="CSV persistence and confirmed purchase feedback" loading="lazy" decoding="async"/>
+<a aria-label="Open full-size diagram" href="/assets/slap-squad/shop-sequence-en.svg" rel="noopener" target="_blank">
+<img alt="CSV persistence and confirmed purchase feedback" decoding="async" loading="lazy" src="/assets/slap-squad/shop-sequence-en.svg"/>
 </a>
 <figcaption>CSV persistence and confirmed purchase feedback. <a href="/assets/slap-squad/shop-sequence-en.svg">Open full-size diagram</a>
 </figcaption>
 </figure>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BNB/commit/57cedd2e5c3b0dbbb7ea51b336602cc339630cea">ShopUI, 57cedd2</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/737a92c397adb4320cf439d99d148362ce1ca090/TeamOFYServer/ClientHandler.cpp#L892">BUY_ICON</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/3e3dcef826fa09c4349038ca0b81ccc97f2c63a6/TeamOFYServer/ClientHandler.cpp">BUY_ICON</a>
 </div>
 </section>
 <section class="case-section full-scope" id="full-scope">
@@ -433,9 +420,9 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <article id="scope-1">
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-laser.webp" rel="noopener" target="_blank">
-<img alt="Laser, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
+<img alt="Laser, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
 </a>
-<figcaption>Laser, attack in a real four-client match</figcaption>
+<figcaption>Laser, attack close-up, 8-second loop</figcaption>
 </figure>
 <div class="feature-copy">
 <span class="scope-number">01</span>
@@ -566,9 +553,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </section>
 <section class="case-section" id="next-experiments">
 <h2>What I would test next</h2>
-<p>The bounded output experiment and client teardown tests are complete. The next concurrency work is a consistent ownership and locking policy for legacy session lookups and room references, plus coordinated server shutdown. IOCP scalability requires another experiment.</p>
-<p>For persistence, the next checks are concurrent purchases and a forced interruption between the two writes. For gameplay authority, client-reported hits and water damage need independent server validation. These are separate failure modes from MOVE fan-out and need separate experiments.</p>
-</section>
+<p>The user-state mutex serializes account writes, and each transaction snapshots the user vectors and rewrites affected CSVs. This favors correctness and compatibility over high write throughput. These tests do not establish database-scale capacity, recovery from disk corruption, or match restoration after a server restart. Client-reported hits still need independent server validation. Full process shutdown and Unity allocation profiling remain separate work.</p></section>
 <section class="case-section" id="world-and-pricing">
 <h2>From implementation to a pricing question</h2>
 <p>Deciding prices for this game motivated my separate CNN consumption-pattern simulation. I presented the research at I2P-CON, then refined it for the CISC-W 2025 poster. The CNN study is not deployed inference in this game server.</p>
@@ -662,45 +647,45 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <div class="weapon-evidence-grid" data-completed-evidence="true">
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-sword.webp" rel="noopener" target="_blank">
-<img alt="Sword, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-sword.webp" width="1920"/>
+<img alt="Sword, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-sword.webp" width="1920"/>
 </a>
-<figcaption>Sword, attack in a real four-client match</figcaption>
+<figcaption>Sword, attack close-up, 8-second loop</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-arrow.webp" rel="noopener" target="_blank">
-<img alt="Arrow, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-arrow.webp" width="1920"/>
+<img alt="Arrow, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-arrow.webp" width="1920"/>
 </a>
-<figcaption>Arrow, attack in a real four-client match</figcaption>
+<figcaption>Arrow, attack close-up, 8-second loop</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-spell.webp" rel="noopener" target="_blank">
-<img alt="Spell, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-spell.webp" width="1920"/>
+<img alt="Spell, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-spell.webp" width="1920"/>
 </a>
-<figcaption>Spell, attack in a real four-client match</figcaption>
+<figcaption>Spell, attack close-up, 8-second loop</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-mace.webp" rel="noopener" target="_blank">
-<img alt="Mace, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-mace.webp" width="1920"/>
+<img alt="Mace, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-mace.webp" width="1920"/>
 </a>
-<figcaption>Mace, attack in a real four-client match</figcaption>
+<figcaption>Mace, attack close-up, 8-second loop</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-melody.webp" rel="noopener" target="_blank">
-<img alt="Melody, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-melody.webp" width="1920"/>
+<img alt="Melody, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-melody.webp" width="1920"/>
 </a>
-<figcaption>Melody, attack in a real four-client match</figcaption>
+<figcaption>Melody, attack close-up, 8-second loop</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-pitchfork.webp" rel="noopener" target="_blank">
-<img alt="Pitchfork, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-pitchfork.webp" width="1920"/>
+<img alt="Pitchfork, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-pitchfork.webp" width="1920"/>
 </a>
-<figcaption>Pitchfork, attack in a real four-client match</figcaption>
+<figcaption>Pitchfork, attack close-up, 8-second loop</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-laser.webp" rel="noopener" target="_blank">
-<img alt="Laser, attack in a real four-client match" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
+<img alt="Laser, attack close-up, 8-second loop" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
 </a>
-<figcaption>Laser, attack in a real four-client match</figcaption>
+<figcaption>Laser, attack close-up, 8-second loop</figcaption>
 </figure>
 </div>
 </section>

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
 <meta charset="utf-8"/>
@@ -21,9 +22,9 @@
 <script defer="" src="/assets/js/career.js">
 </script>
 <link href="/assets/css/evidence.css?v=20261021-v1" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/slap-engineering.css?v=20261021-3"/>
-<link rel="stylesheet" href="/assets/css/slap-media.css?v=20261021-3"/>
-<script defer src="/assets/js/slap-media.js?v=20261021-4">
+<link href="/assets/css/slap-engineering.css?v=20261021-3" rel="stylesheet"/>
+<link href="/assets/css/slap-media.css?v=20261021-5" rel="stylesheet"/>
+<script defer="" src="/assets/js/slap-media.js?v=20261021-5">
 </script>
 </head>
 <body>
@@ -46,7 +47,7 @@
 </nav>
 </div>
 </header>
-<main id="main" class="slap-case">
+<main class="slap-case" id="main">
 <div class="wrap case">
 <a class="back" href="/ja/#work">ポートフォリオ</a>
 <div class="case-hero">
@@ -62,7 +63,7 @@
 <a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/README.ja.md">技術ドキュメント全文</a>
 </div>
 </div>
-<nav class="case-reading-nav">
+<nav class="case-reading-nav"><a href="#state-safety">保存とルーム状態</a>
 <a href="#iocp">IOCP</a>
 <a href="#output-queue">送信キューの設計と再現方法</a>
 <a href="#architecture">サーバー構造</a>
@@ -75,31 +76,17 @@
 </nav>
 <section class="case-opening" id="gameplay">
 <div>
-<h2>プレイから実装と判断へ</h2>
-<p>武器の命中、移動通知、アイテム購入の3つの経路から、Unityの動作とサーバー状態の関係を説明します。当時の選択理由、現在の制約、コードと実験で確認できる根拠を示します。</p>
-<div class="case-facts">
-<a href="#full-scope">
-<strong>7</strong>
-<span>武器の動作</span>
-</a>
-<a href="#performance">
-<strong>76</strong>
-<span>反復測定</span>
-</a>
-<a href="#regression">
-<strong>14 / 14</strong>
-<span>回帰検査</span>
-</a>
-</div>
-</div>
+<h2>戦闘機能とマルチプレイサーバー</h2>
+<p>Unityで7種類の武器動作、移動、水風船、試合結果の処理を実装しました。C++サーバーではルーム管理、メッセージ配信、アイテム購入と保存を担当しました。</p>
+<p class="opening-links"><a href="#full-scope">武器ごとの動作を見る</a><a href="#state-safety">サーバーの改善内容を見る</a></p></div>
 <figure>
-<video controls muted playsinline preload="none" poster="/assets/evidence/slap-four-balloons.webp" aria-label="Slap Squad, four-player gameplay">
-<source src="/assets/evidence/slap-four-play.mp4" type="video/mp4"/>
+<video aria-label="剣の攻撃動作" controls="" muted="" playsinline="" poster="/assets/slap-squad/previews/sword-focus.webp" preload="none">
+<source src="/assets/slap-squad/previews/sword-focus.mp4" type="video/mp4"/>
 </video>
-<figcaption>既存の4人プレイ動画です。以下のソケット負荷実験はUnityを使わず別に実行しました。</figcaption>
+<figcaption>剣の攻撃動作</figcaption>
 </figure>
 </section>
-<section class="case-section" id="iocp">
+<section class="case-section" id="state-safety"><h2>同時購入の保存とルームの寿命を修正</h2><p>32クライアントの同時購入で保存競合を再現しました。4種類のアイテム保存が同じtemp.csvを使い、別の要求の一時ファイルを上書き、削除していました。CSV形式を維持し、残高と所持情報を1回の購入単位で保存するように変更しました。</p><p>一時ファイル名の変更だけでは更新の消失や残高と所持情報の不一致が残ります。Roomをshared_ptrに変えるだけでも同時変更は保護できません。購入は1つのトランザクションにまとめ、ルームは一貫したコピーを読み取ります。MOVE処理はユーザー保存のロックを取得しません。</p><p>ルームの参照はロック内で作成する読み取り専用コピーに変更しました。チーム変更と死亡処理はRoomManagerのロック内で行い、勝敗の確定を試合ごとに1回に制限します。復帰準備が揃った時点で、同じロック内で状態を整理します。報酬の保存失敗時には試合番号を確認して確定を取り消し、再試行を可能にします。配信先の所有権を保持してルームと接続者のロックを解放した後、送信キューに追加します。</p><p>実サーバーに32アカウントで接続し、キャラクター、水風船、エモート、アイコンを同時購入しました。各要求を2回送り、保存後の残高と所持情報が正しかった数は、この再現では修正前0/32、修正後32/32でした。別途96件のプロフィールと戦績保存、16件の同時購入試行、登録時の7ファイル保存、確定前の失敗時の復元、2ファイル中1ファイルを置換した直後の強制終了からの復旧を検査しました。別ルームの移動と12試合の終了を重ね、報酬とGAME_ENDが試合ごとに1回であることを確認し、30個の一時ルームを生成、削除しました。</p><h3>同じ条件での遅延再測定</h3><p>p95の中央値は3条件とも増加しました。64接続ではCPUの中央値が9.22%から7.65%に低下しましたが、8接続と32接続では増加しました。スレッド数は13、37、69のままです。期待した624,000件をすべて受信し、別ルームへの配信と重複はありませんでした。状態の整合性を修正した結果であり、全般的な遅延改善を示すものではありません。</p><p>同じWindows環境、MOVE配信ハーネス、Release x64で、1ルーム4人、各クライアント毎秒20要求を送ります。接続数ごとに各版5回、準備2秒、測定10秒、受信待ち2秒で版の実行順を交互にします。遅延は送信直前から観測側の行受信までで、測定クライアントのイベントループ待機も含みます。CPU 100%は論理コア1個です。Unity描画と戦闘シミュレーションを含まない待機ルームの配信測定です。</p><div class="table-scroll"><table><thead><tr><th>接続数</th><th>p95 ms、変更前 / 後</th><th>CPU %、変更前 / 後</th><th>最大スレッド、変更前 / 後</th><th>最大RSS MiB、変更前 / 後</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-ja.svg"><img alt="同じ条件での遅延再測定" loading="lazy" src="/assets/slap-squad/state-retest-ja.svg"/></a><figcaption>各版5回の中央値です。p95とCPUは低いほど良く、各点は1回の測定です。</figcaption></figure><p>前回のp95増加は条件ごとに3回測定した結果であり、原因を特定するものではありません。32接続でサーバー側TCP_NODELAYだけを変更した別実験では改善を示せませんでした。最初の非同期送信を受信スレッドから直接開始する案も、CPUコストが増えたため採用していません。最終版はIOCPバッチ送信を維持します。以下では各回と中央値を示し、変動をサーバー内部処理時間と断定しません。</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.ja.md">コードと測定データ</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
 <h2>遅い受信者の分離を維持しながら送信スレッドを削減</h2>
 <p>最初の上限付きキューは遅い受信者による他ルームの停止を防ぎましたが、接続ごとに送信スレッドを追加しました。この送信側を共通のIOCPワーカー1本へ変更しました。受信スレッドは引き続き接続ごとに存在します。</p>
 <p>64接続で、観測した最大スレッド数の中央値は132から69、サーバーCPUは論理コア1個基準で12.03%から7.34%に減少しました。最大RSSの中央値は16.03から14.49 MiBになりました。一方、p95の中央値は14.81から15.35 msに増えました。資源コストの削減であり、すべての応答が速くなったという結果ではありません。</p>
@@ -142,7 +129,7 @@
 <p>同一Windows機、Release x64、TCPループバック、1ルーム4人、各クライアント20 HzのMOVEです。接続数とバージョンごとに3回、準備2秒、測定10秒、受信待ち2秒を設定し、実行順を交互にしました。表は実行ごとの値の中央値で、p95も各実行のp95の中央値です。CPU 100%は論理コア1個です。参加者のいる待機ルームの配信経路を測定し、Unity描画、WAN、戦闘全体のシミュレーションは含みません。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-cost-ja.svg">
-<img src="/assets/slap-squad/iocp-cost-ja.svg" loading="lazy" alt="同じMOVE負荷で比較した送信コスト"/>
+<img alt="同じMOVE負荷で比較した送信コスト" loading="lazy" src="/assets/slap-squad/iocp-cost-ja.svg"/>
 </a>
 <figcaption>同じMOVE負荷で比較した送信コスト</figcaption>
 </figure>
@@ -150,7 +137,7 @@
 <p>blocking sendを固定数のワーカープールへ移すだけでは、遅い接続が全ワーカーを占有する可能性があります。overlapped WSASendならソケットの送信を保留したまま完了ワーカーを返せます。測定した8～64接続には送信ワーカー1本を採用しました。本番環境の最大同時接続数や最適なワーカー数を確定した実験ではありません。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-sequence-ja.svg">
-<img src="/assets/slap-squad/iocp-sequence-ja.svg" loading="lazy" alt="IOCP送信、完了操作の所有権とキャンセル"/>
+<img alt="IOCP送信、完了操作の所有権とキャンセル" loading="lazy" src="/assets/slap-squad/iocp-sequence-ja.svg"/>
 </a>
 <figcaption>IOCP送信、完了操作の所有権とキャンセル</figcaption>
 </figure>
@@ -160,7 +147,7 @@
 <p>実際のUserManagerコードで10万回の参照を各版5回交互に実行し、全チェックサムが一致しました。ファイルキャッシュが温まった条件で、初期読み込みは除外しています。所要時間の中央値は9044.14 ms → 0.2805 msでした。ファイルの反復オープンと解析を小さなメモリマップ参照と比較したマイクロベンチマークで、ゲームやサーバー全体の同率の高速化を意味しません。</p>
 <p>Unity受信部はSplit結果の未完成な末尾も処理し、TCP受信片ごとにUTF-8をデコードしていました。64 KiB上限のバイト蓄積器で改行まで完成したメッセージだけを処理し、その後UTF-8を解釈するように変更しました。分割、結合、韓国語と日本語の途中でのバイト分割、サイズ境界、不正UTF-8を検査しました。正確性の修正でありUnityのFPS改善は測定していません。</p>
 <p>送信単体検査7件、実ソケットのフレーミングとルーム検査8件、接続終了検査5件が通過しました。実際のHIT経路でも期待した28応答と他ルーム配信0件を確認しました。起動時キャッシュと独立C#受信パーサーの検査も通過しました。MOVEの18回で欠落、重複、不正形式、他ルーム配信はありませんでした。Unity全体のプレイと長時間負荷は別途検証が必要です。</p>
-<p>3回の標本で統計的有意性は主張しません。MOVEの3接続数条件すべてでp95の中央値が増加し、CPUとスレッドのコストは減少しました。受信スレッドは依然として接続数に比例します。CSV永続化とルーム寿命の問題はIOCPで解決されず、監査記録に残しています。</p>
+<p>CSV保存とルームの寿命は後続の状態整合性修正で対応しました。上記のIOCP値は当時の3回測定の記録です。</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/IOCP.ja.md">実装と再現方法</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-iocp">測定原資料</a>
@@ -175,7 +162,7 @@
 <p>以前の段階の記録です。当時は接続ごとにblocking送信スレッドを設けました。現在の実装は上記のIOCP版で、旧測定値は変更履歴として保持します。</p>
 <p>MOVEの配信範囲を修正した後にも問題が残りました。読み取りを止めたクライアントへのsendがブロックするとルームのロックが解放されず、別のルームも進行できません。実際のソケットで再現し、接続ごとに上限付きキューを設けてソケットへの書き込みを分離しました。</p>
 <p>読み取り停止条件では、従来版の別室への応答は3回とも観測時間内に0/300件でした。修正版は毎回300件すべてを配信し、重複はありませんでした。遅い接続の影響を分離した結果であり、インターネット遅延や最大同時接続数の測定ではありません。従来版は応答がないためp95を定義できず、0msや速度向上率として扱いません。</p>
-<div class="measurement-table" tabindex="0" role="region" aria-label="A室の受信停止時、正常なB室内の応答成功数">
+<div aria-label="A室の受信停止時、正常なB室内の応答成功数" class="measurement-table" role="region" tabindex="0">
 <table>
 <caption>各条件と各版を3回実行しました。遅延は送信直前から観測者の完全な行の受信までで、サーバー内部の処理時間ではありません。各回のCPU、RSS、応答記録は生データにあります。</caption>
 <thead>
@@ -216,7 +203,7 @@
 </div>
 <figure class="uml">
 <a href="/assets/slap-squad/output-delivery-ja.svg">
-<img src="/assets/slap-squad/output-delivery-ja.svg" alt="A室の受信停止時、正常なB室内の応答成功数" loading="lazy"/>
+<img alt="A室の受信停止時、正常なB室内の応答成功数" loading="lazy" src="/assets/slap-squad/output-delivery-ja.svg"/>
 </a>
 <figcaption>A室の受信停止時、正常なB室内の応答成功数</figcaption>
 </figure>
@@ -224,7 +211,7 @@
 <p>共有ロックを解放して送信する方法、接続ごとの送信スレッド、IOCPを比較しました。ロックを解放するだけでは、同じソケットへの並行書き込みや送信待ちデータの上限を解決できません。既存のテキストプロトコルとハンドラーを維持しながら待機を分離するため、接続ごとの単一writerと上限付きキューを選びました。IOCPは接続ごとのスレッド費用を減らせますが、完了通知とバッファ寿命の設計変更が必要です。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/output-sequence-ja.svg">
-<img src="/assets/slap-squad/output-sequence-ja.svg" alt="1接続が1キューと1writerを所有" loading="lazy"/>
+<img alt="1接続が1キューと1writerを所有" loading="lazy" src="/assets/slap-squad/output-sequence-ja.svg"/>
 </a>
 <figcaption>1接続が1キューと1writerを所有</figcaption>
 </figure>
@@ -247,7 +234,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>通常条件の遅延は明確には改善しませんでした。8接続で観測した最大サーバースレッド数は12から20へ増えました。停止した従来版のCPU使用率が低いのは処理が進んでいないためです。接続ごとの受信スレッドを残し、送信スレッドを1つずつ追加した費用も示します。</p>
 <p>QUITは受信ループに後処理を任せ、SocketOutputがshutdown、writerのjoin、最後のclosesocketを所有します。ログアウトではIDを消す前にルームから削除します。ロビー通知は接続ロック内で送信先の所有権とIDをコピーし、その後メッセージを作ってキューに入れます。ルーム削除通知の2経路では、接続ロック中にルームのロックを取得する呼び出しを分離しました。</p>
 <p>決定的な6テストで強制的な部分送信、4つの生成スレッド、バイトとメッセージ数の上限、バッチ化、送信失敗を確認しました。制御したバッチ化テストでは2バイトのメッセージ1,000件を注入した送信関数の2回の呼び出しで渡しました。1件1呼び出しのモデルなら1,000回です。これは関数呼び出し数であり、実際のパケット数、スループット、FPSではありません。実ソケット検査は従来の8項目に不正な購入数値、ログアウトと再ログイン、QUIT/EOFの20回反復、4人同時切断を加えた13項目に合格しました。接続反復後のスレッド数は開始時と同じでした。</p>
-<p>切断時は待機メッセージを破棄するため、正常な配信完了を保証する終了処理ではありません。キューへの追加成功も相手の受信完了を意味しません。サーバー全体の終了、既存セッション検索とルームポインタ寿命の一貫した同期、購入の永続化、サーバーでの命中検証は今後の課題です。下の配信範囲の測定は前段階の結果を保持し、2つの変更を別々に評価できるようにしています。</p>
+<p>CSV保存とルームの寿命は後続の状態整合性修正で対応しました。上記のIOCP値は当時の3回測定の記録です。</p>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/OUTPUT_QUEUE.ja.md">送信キューの設計と再現方法</a>
 <a href="https://github.com/YSL-RyuDo/BnBServer/compare/737a92c397adb4320cf439d99d148362ce1ca090...9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e">Git diff</a>
@@ -259,10 +246,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <section class="case-section" id="architecture">
 <h2>サーバーの所有関係と共有状態</h2>
 <p>ServerはClientHandlerとルーム、ユーザー、マップ、位置のマネージャーを所有します。AcceptClientsは接続ごとに受信スレッドを生成してdetachします。通信は改行区切りのテキストを使うblocking Winsock TCPです。</p>
-<p>ClientInfoがSocketOutputの所有権を共有します。ハンドラーは共有状態のロック内でキューに追加し、共通IOCP送信ワーカーがその外で完了を処理します。未完了操作が接続と送信バイトを保持し、受信スレッドは接続ごとに残ります。</p>
+<p>ルームの参照はロック内で作成する読み取り専用コピーに変更しました。チーム変更と死亡処理はRoomManagerのロック内で行い、勝敗の確定を試合ごとに1回に制限します。復帰準備が揃った時点で、同じロック内で状態を整理します。報酬の保存失敗時には試合番号を確認して確定を取り消し、再試行を可能にします。配信先の所有権を保持してルームと接続者のロックを解放した後、送信キューに追加します。</p>
 <figure class="uml">
-<a href="/assets/slap-squad/server-classes-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/server-classes-ja.svg" alt="サーバーの所有関係と共有状態" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/server-classes-ja.svg" rel="noopener" target="_blank">
+<img alt="サーバーの所有関係と共有状態" decoding="async" loading="lazy" src="/assets/slap-squad/server-classes-ja.svg"/>
 </a>
 <figcaption>サーバーの所有関係と共有状態. <a href="/assets/slap-squad/server-classes-ja.svg">原寸で表示</a>
 </figcaption>
@@ -278,8 +265,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>Unityの武器はHITで武器、攻撃者、対象を報告します。ClientHandlerは協力モードのチーム関係を検査し、GetAttackByIndexでダメージ値を取得してルームにDAMAGEを通知します。受信したGameSystemがダメージとHUDを更新します。サーバーが命中の衝突を再計算する構成ではありません。</p>
 <p>ルーム構造を学び、実際のゲームで試すためにリーダー方式を採用しました。BalloonSystemでは時間が経過するとルームリーダーがREMOVE_BALLOONを送り、サーバーが水流の広がりを計算します。クライアントの衝突報告を信頼する部分は残っています。判定とタイミングをサーバーに移すには、サーバー側のワールド実装と予測、補正の検証が必要です。</p>
 <figure class="uml">
-<a href="/assets/slap-squad/combat-sequence-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/combat-sequence-ja.svg" alt="命中報告からルーム内のダメージ通知まで" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/combat-sequence-ja.svg" rel="noopener" target="_blank">
+<img alt="命中報告からルーム内のダメージ通知まで" decoding="async" loading="lazy" src="/assets/slap-squad/combat-sequence-ja.svg"/>
 </a>
 <figcaption>命中報告からルーム内のダメージ通知まで. <a href="/assets/slap-squad/combat-sequence-ja.svg">原寸で表示</a>
 </figcaption>
@@ -293,8 +280,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <h2>ルームのライフサイクル</h2>
 <p>待機、試合、結果からの復帰がルームUIとゲームをつなぎます。通常対戦は2人以上、協力モードは4人で2対2に分かれる必要があります。図の結果フェーズは概念上の区分です。コードではResults列挙型ではなく、isInGame、deadUsersByRoom、readyUsersByRoomを保持します。</p>
 <figure class="uml">
-<a href="/assets/slap-squad/room-state-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/room-state-ja.svg" alt="ルームのライフサイクル" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/room-state-ja.svg" rel="noopener" target="_blank">
+<img alt="ルームのライフサイクル" decoding="async" loading="lazy" src="/assets/slap-squad/room-state-ja.svg"/>
 </a>
 <figcaption>ルームのライフサイクル. <a href="/assets/slap-squad/room-state-ja.svg">原寸で表示</a>
 </figcaption>
@@ -307,8 +294,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>10月の修正ではBroadcastToRoomExceptに切り替え、セッションの名前と有限な座標を検査しました。TCPの受信バイトを改行まで蓄積し、完成したメッセージだけを処理します。未完の末尾は次のrecvまで保持し、4,096バイトを超える行は拒否します。</p>
 <p>最初の修正はテキストプロトコルとUnityのメッセージ形式を維持しました。長さを先頭に置くバイナリ形式には双方の変更が必要です。受信境界とルーム配信を先に修正し、その後に上記の送信キューを追加しました。</p>
 <figure class="uml">
-<a href="/assets/slap-squad/movement-sequence-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/movement-sequence-ja.svg" alt="ルーム境界と配信範囲が一致していませんでした" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/movement-sequence-ja.svg" rel="noopener" target="_blank">
+<img alt="ルーム境界と配信範囲が一致していませんでした" decoding="async" loading="lazy" src="/assets/slap-squad/movement-sequence-ja.svg"/>
 </a>
 <figcaption>ルーム境界と配信範囲が一致していませんでした. <a href="/assets/slap-squad/movement-sequence-ja.svg">原寸で表示</a>
 </figcaption>
@@ -331,7 +318,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>合成クライアント4、16、32、64接続を1ルーム4人に分け、各接続から毎秒20件のMOVEを送信しました。従来版と修正版を条件ごとに3回ずつ、順序を交互にして実行しました。各回は準備2秒、測定10秒、応答待ち2秒です。全24回をIntel Core i7-14700、RAM 31.69 GiB、Windowsビルド26200、Python 3.10.6でRelease x64として測定しました。</p>
 <p>従来ソースは304b11b、修正ソースは737a92cです。同じビルド設定と合成データを使い、実験用ポートとloopbackへのバインドのみを変更しました。隔離したフォルダーに合成アカウントを作成します。</p>
 <p>遅延は送信側の書き込み直前から別クライアントが応答の1行を受信するまでです。負荷生成器、TCP、OSのスケジューリングを含みます。参加者のいる待機ルームで実際のMOVE処理を測定しており、試合全体のシミュレーションやインターネット環境の同時接続上限ではありません。</p>
-<div class="measurement-table" tabindex="0" role="region" aria-label="実際のC++中継処理の性能評価">
+<div aria-label="実際のC++中継処理の性能評価" class="measurement-table" role="region" tabindex="0">
 <table>
 <caption>各回で算出した値の3回の中央値。CPUの100%は論理コア1つです。未着と他ルームへの配信は修正版3回の合計です。</caption>
 <thead>
@@ -381,15 +368,15 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </table>
 </div>
 <figure class="uml">
-<a href="/assets/slap-squad/latency-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/latency-ja.svg" alt="実際のC++中継処理の性能評価" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/latency-ja.svg" rel="noopener" target="_blank">
+<img alt="実際のC++中継処理の性能評価" decoding="async" loading="lazy" src="/assets/slap-squad/latency-ja.svg"/>
 </a>
 <figcaption>実際のC++中継処理の性能評価. <a href="/assets/slap-squad/latency-ja.svg">原寸で表示</a>
 </figcaption>
 </figure>
 <figure class="uml">
-<a href="/assets/slap-squad/payload-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/payload-ja.svg" alt="64接続でp95の中央値は4,381.75 msから19.91 msに変わりました。各回に受信したアプリケーションデータの中央値は27.30 MiBから1.30 MiBへ約95.2%減少しました。新しいネットワーク方式ではなく、更新1件の受信者を最大63人から3人に限定した結果です。" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/payload-ja.svg" rel="noopener" target="_blank">
+<img alt="64接続でp95の中央値は4,381.75 msから19.91 msに変わりました。各回に受信したアプリケーションデータの中央値は27.30 MiBから1.30 MiBへ約95.2%減少しました。新しいネットワーク方式ではなく、更新1件の受信者を最大63人から3人に限定した結果です。" decoding="async" loading="lazy" src="/assets/slap-squad/payload-ja.svg"/>
 </a>
 <figcaption>64接続でp95の中央値は4,381.75 msから19.91 msに変わりました。各回に受信したアプリケーションデータの中央値は27.30 MiBから1.30 MiBへ約95.2%減少しました。新しいネットワーク方式ではなく、更新1件の受信者を最大63人から3人に限定した結果です。. <a href="/assets/slap-squad/payload-ja.svg">原寸で表示</a>
 </figcaption>
@@ -407,18 +394,18 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <h2>CSV保存と購入結果の表示</h2>
 <p>当初はデータベースをまだ学んでいなかったため、実装を始めやすいCSVを選びました。後からDBへ変更する予定でしたが、移行を完了できませんでした。アカウント、プロフィール、所有アイテム、ショップ情報は現在もファイル保存です。</p>
 <p>私のShopUI変更では、BuyItemが要求を送りボタンを無効にしても、selectedOwnedを即座にtrueにはしません。返されたアイテム情報は、そのタブが選択されている場合だけ表示に反映します。クリックだけで所有を確定させることや、別カテゴリの応答で現在のタブを更新することを避けています。</p>
-<p>BUY_ICONは所有状態、価格、残高を確認してメモリを更新し、プロフィールとアイコンのファイルを別々に保存します。その後に残高とアイテム一覧を返します。2つの保存は原子的なトランザクションではなく、ハンドラーは保存関数のbool結果で処理を分岐していません。応答を待つUIと、クラッシュに耐える永続性は別の問題です。</p>
-<p>DB移行では残高の減算と所有権を一緒にコミットし、再試行の識別と保存失敗時の扱いを定義する必要があります。楽観的UIにはロールバックも必要です。これらは完成済みの機能ではなく、次の設計課題です。</p>
+<p>ユーザー状態のロック内で検証、メモリ更新、コミットを行います。CSVの更新後イメージをメモリにまとめ、復旧ジャーナルをフラッシュして確定してから各CSVを置換します。途中で終了した場合は、起動時にジャーナルを再適用してから接続を受け付けます。確定前の書き込み失敗ではメモリを戻します。確定後の置換失敗では記録を保持してプロセスを停止し、次回起動時に復旧します。同じデータディレクトリを別のサーバープロセスが開くこともファイルロックで防ぎます。</p>
+<p>一時ファイル名の変更だけでは更新の消失や残高と所持情報の不一致が残ります。Roomをshared_ptrに変えるだけでも同時変更は保護できません。購入は1つのトランザクションにまとめ、ルームは一貫したコピーを読み取ります。MOVE処理はユーザー保存のロックを取得しません。</p>
 <figure class="uml">
-<a href="/assets/slap-squad/shop-sequence-ja.svg" target="_blank" rel="noopener" aria-label="原寸で表示">
-<img src="/assets/slap-squad/shop-sequence-ja.svg" alt="CSV保存と購入結果の表示" loading="lazy" decoding="async"/>
+<a aria-label="原寸で表示" href="/assets/slap-squad/shop-sequence-ja.svg" rel="noopener" target="_blank">
+<img alt="CSV保存と購入結果の表示" decoding="async" loading="lazy" src="/assets/slap-squad/shop-sequence-ja.svg"/>
 </a>
 <figcaption>CSV保存と購入結果の表示. <a href="/assets/slap-squad/shop-sequence-ja.svg">原寸で表示</a>
 </figcaption>
 </figure>
 <div class="evidence-links">
 <a href="https://github.com/YSL-RyuDo/BNB/commit/57cedd2e5c3b0dbbb7ea51b336602cc339630cea">ShopUI, 57cedd2</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/737a92c397adb4320cf439d99d148362ce1ca090/TeamOFYServer/ClientHandler.cpp#L892">BUY_ICON</a>
+<a href="https://github.com/YSL-RyuDo/BnBServer/blob/3e3dcef826fa09c4349038ca0b81ccc97f2c63a6/TeamOFYServer/ClientHandler.cpp">BUY_ICON</a>
 </div>
 </section>
 <section class="case-section full-scope" id="full-scope">
@@ -433,9 +420,9 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <article id="scope-1">
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-laser.webp" rel="noopener" target="_blank">
-<img alt="Laser, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
+<img alt="Laser、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
 </a>
-<figcaption>Laser, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Laser、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <div class="feature-copy">
 <span class="scope-number">01</span>
@@ -566,9 +553,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </section>
 <section class="case-section" id="next-experiments">
 <h2>次に検証すること</h2>
-<p>上限付き送信キューの実験とクライアント終了の検査を完了しました。次の並行処理の課題は既存セッション検索とルーム参照の一貫した所有権とロック方針、およびサーバー全体の終了です。IOCPへの拡張には別の実験が必要です。</p>
-<p>永続化では同時購入と2つの保存の間での強制終了を確認する必要があります。ゲーム判定ではクライアントが報告する命中と水流ダメージに独立したサーバー検証が必要です。MOVEの配信範囲とは異なる故障モードなので、個別の実験が必要です。</p>
-</section>
+<p>アカウントの書き込みは1つのロックで直列化し、各トランザクションでユーザーベクトルをコピーして対象CSVを書き直します。既存形式と整合性を優先した設計で、高い書き込み処理能力を示す測定ではありません。ディスク破損や再起動後の試合復元は検証範囲外です。命中報告の独立したサーバー検証、プロセス全体の終了処理、Unityの割り当て計測は残っています。</p></section>
 <section class="case-section" id="world-and-pricing">
 <h2>実装から価格政策の研究へ</h2>
 <p>このゲームのアイテム価格を考えたことから、別のCNN消費パターンシミュレーション研究を始めました。I2P-CONで発表した後に改良し、CISC-W 2025のポスターとして発表しました。CNN推論をこのゲームサーバーに組み込んだわけではありません。</p>
@@ -662,45 +647,45 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <div class="weapon-evidence-grid" data-completed-evidence="true">
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-sword.webp" rel="noopener" target="_blank">
-<img alt="Sword, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-sword.webp" width="1920"/>
+<img alt="Sword、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-sword.webp" width="1920"/>
 </a>
-<figcaption>Sword, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Sword、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-arrow.webp" rel="noopener" target="_blank">
-<img alt="Arrow, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-arrow.webp" width="1920"/>
+<img alt="Arrow、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-arrow.webp" width="1920"/>
 </a>
-<figcaption>Arrow, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Arrow、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-spell.webp" rel="noopener" target="_blank">
-<img alt="Spell, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-spell.webp" width="1920"/>
+<img alt="Spell、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-spell.webp" width="1920"/>
 </a>
-<figcaption>Spell, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Spell、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-mace.webp" rel="noopener" target="_blank">
-<img alt="Mace, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-mace.webp" width="1920"/>
+<img alt="Mace、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-mace.webp" width="1920"/>
 </a>
-<figcaption>Mace, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Mace、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-melody.webp" rel="noopener" target="_blank">
-<img alt="Melody, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-melody.webp" width="1920"/>
+<img alt="Melody、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-melody.webp" width="1920"/>
 </a>
-<figcaption>Melody, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Melody、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-pitchfork.webp" rel="noopener" target="_blank">
-<img alt="Pitchfork, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-pitchfork.webp" width="1920"/>
+<img alt="Pitchfork、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-pitchfork.webp" width="1920"/>
 </a>
-<figcaption>Pitchfork, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Pitchfork、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 <figure class="feature-evidence">
 <a href="/assets/evidence/slap-weapon-laser.webp" rel="noopener" target="_blank">
-<img alt="Laser, 実際の4クライアント対戦での攻撃" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
+<img alt="Laser、攻撃部分を拡大、8秒ループ" decoding="async" height="1080" loading="lazy" src="/assets/evidence/slap-weapon-laser.webp" width="1920"/>
 </a>
-<figcaption>Laser, 実際の4クライアント対戦での攻撃</figcaption>
+<figcaption>Laser、攻撃部分を拡大、8秒ループ</figcaption>
 </figure>
 </div>
 </section>

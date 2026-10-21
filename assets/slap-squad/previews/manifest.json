@@ -78,5 +78,117 @@
     "audio": false,
     "sha256": "9ff0295cdaec5b0c362d30831a10a2c8ee30aff2553568f8bd496a2262e314ee",
     "bytes": 103718
+  },
+  "sword-focus": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "source_sha256": "3e854440951a6111fc0cfd3cf02f32d73176e99dcecc1838fd95a8eeaaffd802",
+    "start_s": 1,
+    "duration_s": 8,
+    "crop_xywh": [
+      440,
+      70,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "954cd6d3cd595ff75b8cd9c81ba9b5ee28b2dd1a9fe757573b312c4611b99ee8",
+    "bytes": 253115
+  },
+  "arrow-focus": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "source_sha256": "3e854440951a6111fc0cfd3cf02f32d73176e99dcecc1838fd95a8eeaaffd802",
+    "start_s": 11,
+    "duration_s": 8,
+    "crop_xywh": [
+      440,
+      540,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "1c188f1d37218addd989e507f187ace02817eb7a049d23b669a74f219be2ff2d",
+    "bytes": 134863
+  },
+  "spell-focus": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "source_sha256": "3e854440951a6111fc0cfd3cf02f32d73176e99dcecc1838fd95a8eeaaffd802",
+    "start_s": 21,
+    "duration_s": 8,
+    "crop_xywh": [
+      0,
+      70,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "0942c30ab760bd7a8ac72e74608e8f2b8dce965f3c667c1d758f688398baa48f",
+    "bytes": 233154
+  },
+  "mace-focus": {
+    "source": "/assets/evidence/slap-weapons-first.mp4",
+    "source_sha256": "3e854440951a6111fc0cfd3cf02f32d73176e99dcecc1838fd95a8eeaaffd802",
+    "start_s": 30,
+    "duration_s": 8,
+    "crop_xywh": [
+      0,
+      540,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "61ec4158d52e27876b0d90cabdfa8706ec42a2fd5b607f5f41cde33e76827473",
+    "bytes": 341002
+  },
+  "melody-focus": {
+    "source": "/assets/evidence/slap-weapons-second.mp4",
+    "source_sha256": "e52e89242b8639442ecab7acdba359d945edef4101e83b9ebf910e5727de488c",
+    "start_s": 1,
+    "duration_s": 8,
+    "crop_xywh": [
+      440,
+      70,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "a82c64179b8999433c83b671f21497afae26a849db975eb6566b52dc16cd6167",
+    "bytes": 145857
+  },
+  "pitchfork-focus": {
+    "source": "/assets/evidence/slap-weapons-second.mp4",
+    "source_sha256": "e52e89242b8639442ecab7acdba359d945edef4101e83b9ebf910e5727de488c",
+    "start_s": 11,
+    "duration_s": 8,
+    "crop_xywh": [
+      0,
+      540,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "c1b4bf3ec61f13751b0aa1509ee50baf8f037fe5582277fa2ebe26eb31f5d033",
+    "bytes": 192269
+  },
+  "laser-focus": {
+    "source": "/assets/evidence/slap-weapons-second.mp4",
+    "source_sha256": "e52e89242b8639442ecab7acdba359d945edef4101e83b9ebf910e5727de488c",
+    "start_s": 21,
+    "duration_s": 8,
+    "crop_xywh": [
+      440,
+      540,
+      640,
+      480
+    ],
+    "speed": 1,
+    "audio": false,
+    "sha256": "a0f0b984e8e054674494eca7d629500c01073711d7daaf4eafcf77245a99471e",
+    "bytes": 180305
   }
 }

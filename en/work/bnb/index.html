@@ -86,7 +86,7 @@
 <figcaption>Sword attack</figcaption>
 </figure>
 </section>
-<section class="case-section" id="state-safety"><h2>CSV transactions and room lifetime</h2><p>A 32-client purchase test exposed a persistence failure: all four item categories wrote through the same temp.csv. Different requests could replace or remove one another’s temporary file. The follow-up change keeps CSV storage but commits a purchase’s balance and ownership together.</p><p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p><p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p><p>The real server purchase test sends two requests per account, with 32 accounts split across character, balloon, emote and icon purchases. Correct persisted balance and ownership: 0/32 before, 32/32 after, in this reproduction. The unit harness also checks 96 concurrent profile/stat commits, 16 simultaneous purchase attempts, seven-file registration, precommit failure rollback and recovery after process termination between two replacements. The room test completes 12 matches while another room moves, checks one reward and one GAME_END per match, and churns 30 temporary rooms.</p><h3>Latency retest</h3><p>The median p95 increased at all three loads. At 64 connections, median CPU fell from 9.22% to 7.65%; at 8 and 32 it increased. Thread counts stayed at 13, 37 and 69. All 624,000 expected deliveries arrived with no cross-room delivery or duplication. This change fixes state correctness; it does not establish a general latency improvement.</p><p>The same MOVE relay harness, Windows host, Release x64, 4 clients per room and 20 messages/s/client are used for both versions. Each load has five runs per version, with alternating order, 2 s warm-up, 10 s measurement and 2 s drain. Latency includes sender and observer event-loop scheduling. CPU 100% means one logical core. This is a waiting-room relay test without Unity rendering or battle simulation.</p><div class="table-scroll"><table><thead><tr><th>Connections</th><th>p95 ms, before / after</th><th>CPU %, before / after</th><th>Peak threads, before / after</th><th>Peak RSS MiB, before / after</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-en.svg"><img alt="Latency retest" loading="lazy" src="/assets/slap-squad/state-retest-en.svg"/></a><figcaption>Median of five runs per version. Lower p95 and CPU are better. Each dot is one run.</figcaption></figure><p>The earlier p95 increase came from three runs per condition and does not identify a cause. A separate 32-client diagnostic changed only server TCP_NODELAY; it did not demonstrate an improvement. Starting the first overlapped send on the receive thread reduced one worker handoff but increased CPU in the pilot, so it was discarded. The final implementation retains IOCP batching. The retest below reports every run and the median rather than attributing all variation to the server.</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.md">Code and test data</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
+<section class="case-section" id="state-safety"><h2>CSV transactions and room lifetime</h2><p>A 32-client purchase test exposed a persistence failure: all four item categories wrote through the same temp.csv. Different requests could replace or remove one another’s temporary file. The follow-up change keeps CSV storage but commits a purchase’s balance and ownership together.</p><p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p><p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p><p>The real server purchase test sends two requests per account, with 32 accounts split across character, balloon, emote and icon purchases. Correct persisted balance and ownership: 0/32 before, 32/32 after, in this reproduction. The unit harness also checks 96 concurrent profile/stat commits, 16 simultaneous purchase attempts, seven-file registration, precommit failure rollback and recovery after process termination between two replacements. The room test completes 12 matches while another room moves, checks one reward and one GAME_END per match, and churns 30 temporary rooms.</p><h3>Latency retest</h3><p>The median p95 increased at all three loads. At 64 connections, median CPU fell from 9.22% to 7.65%; at 8 and 32 it increased. Thread counts stayed at 13, 37 and 69. All 624,000 expected deliveries arrived with no cross-room delivery or duplication. This change fixes state correctness; it does not establish a general latency improvement.</p><p>The same MOVE relay harness, Windows host, Release x64, 4 clients per room and 20 messages/s/client are used for both versions. Each load has five runs per version, with alternating order, 2 s warm-up, 10 s measurement and 2 s drain. Latency includes sender and observer event-loop scheduling. CPU 100% means one logical core. This is a waiting-room relay test without Unity rendering or battle simulation.</p><div class="table-scroll"><table><thead><tr><th>Connections</th><th>p95 ms, before / after</th><th>CPU %, before / after</th><th>Peak threads, before / after</th><th>Peak RSS MiB, before / after</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-en.svg"><img alt="Latency retest" height="260" loading="lazy" src="/assets/slap-squad/state-retest-en.svg" width="792"/></a><figcaption>Median of five runs per version. Lower p95 and CPU are better. Each dot is one run.</figcaption></figure><p>The earlier p95 increase came from three runs per condition and does not identify a cause. A separate 32-client diagnostic changed only server TCP_NODELAY; it did not demonstrate an improvement. Starting the first overlapped send on the receive thread reduced one worker handoff but increased CPU in the pilot, so it was discarded. The final implementation retains IOCP batching. The retest below reports every run and the median rather than attributing all variation to the server.</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.md">Code and test data</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
 <h2>Reducing output-thread cost without losing slow-reader isolation</h2>
 <p>The first bounded-queue fix prevented a stalled reader from blocking other rooms, but created a writer thread for every connection. I replaced those writers with one shared IOCP output worker. Receive threads remain per connection.</p>
 <p>At 64 connections, the median observed peak thread count fell from 132 to 69, and server CPU from 12.03% to 7.34% of one logical core. Median peak RSS fell from 16.03 to 14.49 MiB. The p95 median increased from 14.81 to 15.35 ms. This is a reduction in resource cost, not a claim that every response became faster.</p>
@@ -129,7 +129,7 @@
 <p>Same Windows machine, Release x64, TCP loopback, 4 clients per room, MOVE at 20 Hz per client. Each variant has three runs per connection count, with 2 s warmup, 10 s measurement and 2 s drain. Variant order alternates. Values below are medians of per-run values; p95 is the median of run p95s. CPU 100% means one logical core. These populated waiting-room tests exclude Unity rendering, WAN traffic and full battle simulation.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-cost-en.svg">
-<img alt="Output cost under the same MOVE workload" loading="lazy" src="/assets/slap-squad/iocp-cost-en.svg"/>
+<img alt="Output cost under the same MOVE workload" height="332" loading="lazy" src="/assets/slap-squad/iocp-cost-en.svg" width="792"/>
 </a>
 <figcaption>Output cost under the same MOVE workload</figcaption>
 </figure>
@@ -137,7 +137,7 @@
 <p>A fixed pool of blocking send workers would limit thread count, but enough stalled peers could occupy every worker. Overlapped WSASend allows a slow socket to remain pending without tying up the completion worker. I selected one output worker for the measured range of 8–64 connections; these tests do not establish a production capacity limit or the optimal worker count.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-sequence-en.svg">
-<img alt="IOCP output, completion ownership and cancellation" loading="lazy" src="/assets/slap-squad/iocp-sequence-en.svg"/>
+<img alt="IOCP output, completion ownership and cancellation" height="773" loading="lazy" src="/assets/slap-squad/iocp-sequence-en.svg" width="676"/>
 </a>
 <figcaption>IOCP output, completion ownership and cancellation</figcaption>
 </figure>
@@ -203,7 +203,7 @@
 </div>
 <figure class="uml">
 <a href="/assets/slap-squad/output-delivery-en.svg">
-<img alt="Healthy-room delivery under a stopped reader" loading="lazy" src="/assets/slap-squad/output-delivery-en.svg"/>
+<img alt="Healthy-room delivery under a stopped reader" height="310" loading="lazy" src="/assets/slap-squad/output-delivery-en.svg" width="648"/>
 </a>
 <figcaption>Healthy-room delivery under a stopped reader</figcaption>
 </figure>
@@ -211,7 +211,7 @@
 <p>I considered sending after releasing the shared lock, a dedicated writer per connection, and IOCP. Releasing the lock alone would not serialize concurrent writes to the same socket or bound pending data. I chose one writer with a bounded queue to preserve the existing text protocol and handlers while isolating socket waits. IOCP would reduce the per-connection thread cost, but requires a separate redesign of completion handling and buffer lifetime.</p>
 <figure class="uml">
 <a href="/assets/slap-squad/output-sequence-en.svg">
-<img alt="One connection owns one queue and one writer" loading="lazy" src="/assets/slap-squad/output-sequence-en.svg"/>
+<img alt="One connection owns one queue and one writer" height="1081" loading="lazy" src="/assets/slap-squad/output-sequence-en.svg" width="1133"/>
 </a>
 <figcaption>One connection owns one queue and one writer</figcaption>
 </figure>
@@ -249,7 +249,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/server-classes-en.svg" rel="noopener" target="_blank">
-<img alt="The server and its shared state" decoding="async" loading="lazy" src="/assets/slap-squad/server-classes-en.svg"/>
+<img alt="The server and its shared state" decoding="async" height="1222" loading="lazy" src="/assets/slap-squad/server-classes-en.svg" width="892"/>
 </a>
 <figcaption>The server and its shared state. <a href="/assets/slap-squad/server-classes-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -266,7 +266,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>I tried the room-leader approach while learning how rooms work and applying it to an actual game. In BalloonSystem, the room leader sends REMOVE_BALLOON when the timer expires; the server computes the water spread. Client collision reporting still forms part of the trust boundary. Moving collision and timing decisions to the server would require server-side world simulation and separate validation of prediction and correction.</p>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/combat-sequence-en.svg" rel="noopener" target="_blank">
-<img alt="A reported hit becomes damage in the room" decoding="async" loading="lazy" src="/assets/slap-squad/combat-sequence-en.svg"/>
+<img alt="A reported hit becomes damage in the room" decoding="async" height="643" loading="lazy" src="/assets/slap-squad/combat-sequence-en.svg" width="1244"/>
 </a>
 <figcaption>A reported hit becomes damage in the room. <a href="/assets/slap-squad/combat-sequence-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -281,7 +281,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>Waiting, playing and returning from results connect the room UI to the match. The normal start requires at least two players. Cooperative play requires four players split two against two. The result phase below is conceptual: the code stores isInGame, deadUsersByRoom and readyUsersByRoom, not a Results enum.</p>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/room-state-en.svg" rel="noopener" target="_blank">
-<img alt="Room lifecycle" decoding="async" loading="lazy" src="/assets/slap-squad/room-state-en.svg"/>
+<img alt="Room lifecycle" decoding="async" height="725" loading="lazy" src="/assets/slap-squad/room-state-en.svg" width="822"/>
 </a>
 <figcaption>Room lifecycle. <a href="/assets/slap-squad/room-state-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -295,7 +295,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>The first patch preserved the text protocol and Unity message format. A length-prefixed binary protocol would require coordinated client changes. It addressed framing and room delivery; the later bounded output patch is described above.</p>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/movement-sequence-en.svg" rel="noopener" target="_blank">
-<img alt="The room boundary was not the delivery boundary" decoding="async" loading="lazy" src="/assets/slap-squad/movement-sequence-en.svg"/>
+<img alt="The room boundary was not the delivery boundary" decoding="async" height="743" loading="lazy" src="/assets/slap-squad/movement-sequence-en.svg" width="993"/>
 </a>
 <figcaption>The room boundary was not the delivery boundary. <a href="/assets/slap-squad/movement-sequence-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -369,14 +369,14 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </div>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/latency-en.svg" rel="noopener" target="_blank">
-<img alt="Performance measured on the actual C++ relay" decoding="async" loading="lazy" src="/assets/slap-squad/latency-en.svg"/>
+<img alt="Performance measured on the actual C++ relay" decoding="async" height="353" loading="lazy" src="/assets/slap-squad/latency-en.svg" width="648"/>
 </a>
 <figcaption>Performance measured on the actual C++ relay. <a href="/assets/slap-squad/latency-en.svg">Open full-size diagram</a>
 </figcaption>
 </figure>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/payload-en.svg" rel="noopener" target="_blank">
-<img alt="At 64 connections, median p95 changed from 4,381.75 ms to 19.91 ms. Received application payload changed from 27.30 MiB to 1.30 MiB per run, approximately 95.2% less. This is explained by restricting each update from up to 63 recipients to three, not by a new network stack." decoding="async" loading="lazy" src="/assets/slap-squad/payload-en.svg"/>
+<img alt="At 64 connections, median p95 changed from 4,381.75 ms to 19.91 ms. Received application payload changed from 27.30 MiB to 1.30 MiB per run, approximately 95.2% less. This is explained by restricting each update from up to 63 recipients to three, not by a new network stack." decoding="async" height="353" loading="lazy" src="/assets/slap-squad/payload-en.svg" width="648"/>
 </a>
 <figcaption>At 64 connections, median p95 changed from 4,381.75 ms to 19.91 ms. Received application payload changed from 27.30 MiB to 1.30 MiB per run, approximately 95.2% less. This is explained by restricting each update from up to 63 recipients to three, not by a new network stack.. <a href="/assets/slap-squad/payload-en.svg">Open full-size diagram</a>
 </figcaption>
@@ -398,7 +398,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p>
 <figure class="uml">
 <a aria-label="Open full-size diagram" href="/assets/slap-squad/shop-sequence-en.svg" rel="noopener" target="_blank">
-<img alt="CSV persistence and confirmed purchase feedback" decoding="async" loading="lazy" src="/assets/slap-squad/shop-sequence-en.svg"/>
+<img alt="CSV persistence and confirmed purchase feedback" decoding="async" height="944" loading="lazy" src="/assets/slap-squad/shop-sequence-en.svg" width="1100"/>
 </a>
 <figcaption>CSV persistence and confirmed purchase feedback. <a href="/assets/slap-squad/shop-sequence-en.svg">Open full-size diagram</a>
 </figcaption>

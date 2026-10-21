@@ -86,7 +86,7 @@
 <figcaption>剣の攻撃動作</figcaption>
 </figure>
 </section>
-<section class="case-section" id="state-safety"><h2>同時購入の保存とルームの寿命を修正</h2><p>32クライアントの同時購入で保存競合を再現しました。4種類のアイテム保存が同じtemp.csvを使い、別の要求の一時ファイルを上書き、削除していました。CSV形式を維持し、残高と所持情報を1回の購入単位で保存するように変更しました。</p><p>一時ファイル名の変更だけでは更新の消失や残高と所持情報の不一致が残ります。Roomをshared_ptrに変えるだけでも同時変更は保護できません。購入は1つのトランザクションにまとめ、ルームは一貫したコピーを読み取ります。MOVE処理はユーザー保存のロックを取得しません。</p><p>ルームの参照はロック内で作成する読み取り専用コピーに変更しました。チーム変更と死亡処理はRoomManagerのロック内で行い、勝敗の確定を試合ごとに1回に制限します。復帰準備が揃った時点で、同じロック内で状態を整理します。報酬の保存失敗時には試合番号を確認して確定を取り消し、再試行を可能にします。配信先の所有権を保持してルームと接続者のロックを解放した後、送信キューに追加します。</p><p>実サーバーに32アカウントで接続し、キャラクター、水風船、エモート、アイコンを同時購入しました。各要求を2回送り、保存後の残高と所持情報が正しかった数は、この再現では修正前0/32、修正後32/32でした。別途96件のプロフィールと戦績保存、16件の同時購入試行、登録時の7ファイル保存、確定前の失敗時の復元、2ファイル中1ファイルを置換した直後の強制終了からの復旧を検査しました。別ルームの移動と12試合の終了を重ね、報酬とGAME_ENDが試合ごとに1回であることを確認し、30個の一時ルームを生成、削除しました。</p><h3>同じ条件での遅延再測定</h3><p>p95の中央値は3条件とも増加しました。64接続ではCPUの中央値が9.22%から7.65%に低下しましたが、8接続と32接続では増加しました。スレッド数は13、37、69のままです。期待した624,000件をすべて受信し、別ルームへの配信と重複はありませんでした。状態の整合性を修正した結果であり、全般的な遅延改善を示すものではありません。</p><p>同じWindows環境、MOVE配信ハーネス、Release x64で、1ルーム4人、各クライアント毎秒20要求を送ります。接続数ごとに各版5回、準備2秒、測定10秒、受信待ち2秒で版の実行順を交互にします。遅延は送信直前から観測側の行受信までで、測定クライアントのイベントループ待機も含みます。CPU 100%は論理コア1個です。Unity描画と戦闘シミュレーションを含まない待機ルームの配信測定です。</p><div class="table-scroll"><table><thead><tr><th>接続数</th><th>p95 ms、変更前 / 後</th><th>CPU %、変更前 / 後</th><th>最大スレッド、変更前 / 後</th><th>最大RSS MiB、変更前 / 後</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-ja.svg"><img alt="同じ条件での遅延再測定" loading="lazy" src="/assets/slap-squad/state-retest-ja.svg"/></a><figcaption>各版5回の中央値です。p95とCPUは低いほど良く、各点は1回の測定です。</figcaption></figure><p>前回のp95増加は条件ごとに3回測定した結果であり、原因を特定するものではありません。32接続でサーバー側TCP_NODELAYだけを変更した別実験では改善を示せませんでした。最初の非同期送信を受信スレッドから直接開始する案も、CPUコストが増えたため採用していません。最終版はIOCPバッチ送信を維持します。以下では各回と中央値を示し、変動をサーバー内部処理時間と断定しません。</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.ja.md">コードと測定データ</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
+<section class="case-section" id="state-safety"><h2>同時購入の保存とルームの寿命を修正</h2><p>32クライアントの同時購入で保存競合を再現しました。4種類のアイテム保存が同じtemp.csvを使い、別の要求の一時ファイルを上書き、削除していました。CSV形式を維持し、残高と所持情報を1回の購入単位で保存するように変更しました。</p><p>一時ファイル名の変更だけでは更新の消失や残高と所持情報の不一致が残ります。Roomをshared_ptrに変えるだけでも同時変更は保護できません。購入は1つのトランザクションにまとめ、ルームは一貫したコピーを読み取ります。MOVE処理はユーザー保存のロックを取得しません。</p><p>ルームの参照はロック内で作成する読み取り専用コピーに変更しました。チーム変更と死亡処理はRoomManagerのロック内で行い、勝敗の確定を試合ごとに1回に制限します。復帰準備が揃った時点で、同じロック内で状態を整理します。報酬の保存失敗時には試合番号を確認して確定を取り消し、再試行を可能にします。配信先の所有権を保持してルームと接続者のロックを解放した後、送信キューに追加します。</p><p>実サーバーに32アカウントで接続し、キャラクター、水風船、エモート、アイコンを同時購入しました。各要求を2回送り、保存後の残高と所持情報が正しかった数は、この再現では修正前0/32、修正後32/32でした。別途96件のプロフィールと戦績保存、16件の同時購入試行、登録時の7ファイル保存、確定前の失敗時の復元、2ファイル中1ファイルを置換した直後の強制終了からの復旧を検査しました。別ルームの移動と12試合の終了を重ね、報酬とGAME_ENDが試合ごとに1回であることを確認し、30個の一時ルームを生成、削除しました。</p><h3>同じ条件での遅延再測定</h3><p>p95の中央値は3条件とも増加しました。64接続ではCPUの中央値が9.22%から7.65%に低下しましたが、8接続と32接続では増加しました。スレッド数は13、37、69のままです。期待した624,000件をすべて受信し、別ルームへの配信と重複はありませんでした。状態の整合性を修正した結果であり、全般的な遅延改善を示すものではありません。</p><p>同じWindows環境、MOVE配信ハーネス、Release x64で、1ルーム4人、各クライアント毎秒20要求を送ります。接続数ごとに各版5回、準備2秒、測定10秒、受信待ち2秒で版の実行順を交互にします。遅延は送信直前から観測側の行受信までで、測定クライアントのイベントループ待機も含みます。CPU 100%は論理コア1個です。Unity描画と戦闘シミュレーションを含まない待機ルームの配信測定です。</p><div class="table-scroll"><table><thead><tr><th>接続数</th><th>p95 ms、変更前 / 後</th><th>CPU %、変更前 / 後</th><th>最大スレッド、変更前 / 後</th><th>最大RSS MiB、変更前 / 後</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-ja.svg"><img alt="同じ条件での遅延再測定" height="260" loading="lazy" src="/assets/slap-squad/state-retest-ja.svg" width="792"/></a><figcaption>各版5回の中央値です。p95とCPUは低いほど良く、各点は1回の測定です。</figcaption></figure><p>前回のp95増加は条件ごとに3回測定した結果であり、原因を特定するものではありません。32接続でサーバー側TCP_NODELAYだけを変更した別実験では改善を示せませんでした。最初の非同期送信を受信スレッドから直接開始する案も、CPUコストが増えたため採用していません。最終版はIOCPバッチ送信を維持します。以下では各回と中央値を示し、変動をサーバー内部処理時間と断定しません。</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.ja.md">コードと測定データ</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
 <h2>遅い受信者の分離を維持しながら送信スレッドを削減</h2>
 <p>最初の上限付きキューは遅い受信者による他ルームの停止を防ぎましたが、接続ごとに送信スレッドを追加しました。この送信側を共通のIOCPワーカー1本へ変更しました。受信スレッドは引き続き接続ごとに存在します。</p>
 <p>64接続で、観測した最大スレッド数の中央値は132から69、サーバーCPUは論理コア1個基準で12.03%から7.34%に減少しました。最大RSSの中央値は16.03から14.49 MiBになりました。一方、p95の中央値は14.81から15.35 msに増えました。資源コストの削減であり、すべての応答が速くなったという結果ではありません。</p>
@@ -129,7 +129,7 @@
 <p>同一Windows機、Release x64、TCPループバック、1ルーム4人、各クライアント20 HzのMOVEです。接続数とバージョンごとに3回、準備2秒、測定10秒、受信待ち2秒を設定し、実行順を交互にしました。表は実行ごとの値の中央値で、p95も各実行のp95の中央値です。CPU 100%は論理コア1個です。参加者のいる待機ルームの配信経路を測定し、Unity描画、WAN、戦闘全体のシミュレーションは含みません。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-cost-ja.svg">
-<img alt="同じMOVE負荷で比較した送信コスト" loading="lazy" src="/assets/slap-squad/iocp-cost-ja.svg"/>
+<img alt="同じMOVE負荷で比較した送信コスト" height="332" loading="lazy" src="/assets/slap-squad/iocp-cost-ja.svg" width="792"/>
 </a>
 <figcaption>同じMOVE負荷で比較した送信コスト</figcaption>
 </figure>
@@ -137,7 +137,7 @@
 <p>blocking sendを固定数のワーカープールへ移すだけでは、遅い接続が全ワーカーを占有する可能性があります。overlapped WSASendならソケットの送信を保留したまま完了ワーカーを返せます。測定した8～64接続には送信ワーカー1本を採用しました。本番環境の最大同時接続数や最適なワーカー数を確定した実験ではありません。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/iocp-sequence-ja.svg">
-<img alt="IOCP送信、完了操作の所有権とキャンセル" loading="lazy" src="/assets/slap-squad/iocp-sequence-ja.svg"/>
+<img alt="IOCP送信、完了操作の所有権とキャンセル" height="670" loading="lazy" src="/assets/slap-squad/iocp-sequence-ja.svg" width="639"/>
 </a>
 <figcaption>IOCP送信、完了操作の所有権とキャンセル</figcaption>
 </figure>
@@ -203,7 +203,7 @@
 </div>
 <figure class="uml">
 <a href="/assets/slap-squad/output-delivery-ja.svg">
-<img alt="A室の受信停止時、正常なB室内の応答成功数" loading="lazy" src="/assets/slap-squad/output-delivery-ja.svg"/>
+<img alt="A室の受信停止時、正常なB室内の応答成功数" height="310" loading="lazy" src="/assets/slap-squad/output-delivery-ja.svg" width="648"/>
 </a>
 <figcaption>A室の受信停止時、正常なB室内の応答成功数</figcaption>
 </figure>
@@ -211,7 +211,7 @@
 <p>共有ロックを解放して送信する方法、接続ごとの送信スレッド、IOCPを比較しました。ロックを解放するだけでは、同じソケットへの並行書き込みや送信待ちデータの上限を解決できません。既存のテキストプロトコルとハンドラーを維持しながら待機を分離するため、接続ごとの単一writerと上限付きキューを選びました。IOCPは接続ごとのスレッド費用を減らせますが、完了通知とバッファ寿命の設計変更が必要です。</p>
 <figure class="uml">
 <a href="/assets/slap-squad/output-sequence-ja.svg">
-<img alt="1接続が1キューと1writerを所有" loading="lazy" src="/assets/slap-squad/output-sequence-ja.svg"/>
+<img alt="1接続が1キューと1writerを所有" height="988" loading="lazy" src="/assets/slap-squad/output-sequence-ja.svg" width="1128"/>
 </a>
 <figcaption>1接続が1キューと1writerを所有</figcaption>
 </figure>
@@ -249,7 +249,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>ルームの参照はロック内で作成する読み取り専用コピーに変更しました。チーム変更と死亡処理はRoomManagerのロック内で行い、勝敗の確定を試合ごとに1回に制限します。復帰準備が揃った時点で、同じロック内で状態を整理します。報酬の保存失敗時には試合番号を確認して確定を取り消し、再試行を可能にします。配信先の所有権を保持してルームと接続者のロックを解放した後、送信キューに追加します。</p>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/server-classes-ja.svg" rel="noopener" target="_blank">
-<img alt="サーバーの所有関係と共有状態" decoding="async" loading="lazy" src="/assets/slap-squad/server-classes-ja.svg"/>
+<img alt="サーバーの所有関係と共有状態" decoding="async" height="1109" loading="lazy" src="/assets/slap-squad/server-classes-ja.svg" width="945"/>
 </a>
 <figcaption>サーバーの所有関係と共有状態. <a href="/assets/slap-squad/server-classes-ja.svg">原寸で表示</a>
 </figcaption>
@@ -266,7 +266,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>ルーム構造を学び、実際のゲームで試すためにリーダー方式を採用しました。BalloonSystemでは時間が経過するとルームリーダーがREMOVE_BALLOONを送り、サーバーが水流の広がりを計算します。クライアントの衝突報告を信頼する部分は残っています。判定とタイミングをサーバーに移すには、サーバー側のワールド実装と予測、補正の検証が必要です。</p>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/combat-sequence-ja.svg" rel="noopener" target="_blank">
-<img alt="命中報告からルーム内のダメージ通知まで" decoding="async" loading="lazy" src="/assets/slap-squad/combat-sequence-ja.svg"/>
+<img alt="命中報告からルーム内のダメージ通知まで" decoding="async" height="589" loading="lazy" src="/assets/slap-squad/combat-sequence-ja.svg" width="1109"/>
 </a>
 <figcaption>命中報告からルーム内のダメージ通知まで. <a href="/assets/slap-squad/combat-sequence-ja.svg">原寸で表示</a>
 </figcaption>
@@ -281,7 +281,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>待機、試合、結果からの復帰がルームUIとゲームをつなぎます。通常対戦は2人以上、協力モードは4人で2対2に分かれる必要があります。図の結果フェーズは概念上の区分です。コードではResults列挙型ではなく、isInGame、deadUsersByRoom、readyUsersByRoomを保持します。</p>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/room-state-ja.svg" rel="noopener" target="_blank">
-<img alt="ルームのライフサイクル" decoding="async" loading="lazy" src="/assets/slap-squad/room-state-ja.svg"/>
+<img alt="ルームのライフサイクル" decoding="async" height="669" loading="lazy" src="/assets/slap-squad/room-state-ja.svg" width="734"/>
 </a>
 <figcaption>ルームのライフサイクル. <a href="/assets/slap-squad/room-state-ja.svg">原寸で表示</a>
 </figcaption>
@@ -295,7 +295,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>最初の修正はテキストプロトコルとUnityのメッセージ形式を維持しました。長さを先頭に置くバイナリ形式には双方の変更が必要です。受信境界とルーム配信を先に修正し、その後に上記の送信キューを追加しました。</p>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/movement-sequence-ja.svg" rel="noopener" target="_blank">
-<img alt="ルーム境界と配信範囲が一致していませんでした" decoding="async" loading="lazy" src="/assets/slap-squad/movement-sequence-ja.svg"/>
+<img alt="ルーム境界と配信範囲が一致していませんでした" decoding="async" height="679" loading="lazy" src="/assets/slap-squad/movement-sequence-ja.svg" width="994"/>
 </a>
 <figcaption>ルーム境界と配信範囲が一致していませんでした. <a href="/assets/slap-squad/movement-sequence-ja.svg">原寸で表示</a>
 </figcaption>
@@ -369,14 +369,14 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </div>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/latency-ja.svg" rel="noopener" target="_blank">
-<img alt="実際のC++中継処理の性能評価" decoding="async" loading="lazy" src="/assets/slap-squad/latency-ja.svg"/>
+<img alt="実際のC++中継処理の性能評価" decoding="async" height="353" loading="lazy" src="/assets/slap-squad/latency-ja.svg" width="648"/>
 </a>
 <figcaption>実際のC++中継処理の性能評価. <a href="/assets/slap-squad/latency-ja.svg">原寸で表示</a>
 </figcaption>
 </figure>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/payload-ja.svg" rel="noopener" target="_blank">
-<img alt="64接続でp95の中央値は4,381.75 msから19.91 msに変わりました。各回に受信したアプリケーションデータの中央値は27.30 MiBから1.30 MiBへ約95.2%減少しました。新しいネットワーク方式ではなく、更新1件の受信者を最大63人から3人に限定した結果です。" decoding="async" loading="lazy" src="/assets/slap-squad/payload-ja.svg"/>
+<img alt="64接続でp95の中央値は4,381.75 msから19.91 msに変わりました。各回に受信したアプリケーションデータの中央値は27.30 MiBから1.30 MiBへ約95.2%減少しました。新しいネットワーク方式ではなく、更新1件の受信者を最大63人から3人に限定した結果です。" decoding="async" height="353" loading="lazy" src="/assets/slap-squad/payload-ja.svg" width="648"/>
 </a>
 <figcaption>64接続でp95の中央値は4,381.75 msから19.91 msに変わりました。各回に受信したアプリケーションデータの中央値は27.30 MiBから1.30 MiBへ約95.2%減少しました。新しいネットワーク方式ではなく、更新1件の受信者を最大63人から3人に限定した結果です。. <a href="/assets/slap-squad/payload-ja.svg">原寸で表示</a>
 </figcaption>
@@ -398,7 +398,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>一時ファイル名の変更だけでは更新の消失や残高と所持情報の不一致が残ります。Roomをshared_ptrに変えるだけでも同時変更は保護できません。購入は1つのトランザクションにまとめ、ルームは一貫したコピーを読み取ります。MOVE処理はユーザー保存のロックを取得しません。</p>
 <figure class="uml">
 <a aria-label="原寸で表示" href="/assets/slap-squad/shop-sequence-ja.svg" rel="noopener" target="_blank">
-<img alt="CSV保存と購入結果の表示" decoding="async" loading="lazy" src="/assets/slap-squad/shop-sequence-ja.svg"/>
+<img alt="CSV保存と購入結果の表示" decoding="async" height="861" loading="lazy" src="/assets/slap-squad/shop-sequence-ja.svg" width="1071"/>
 </a>
 <figcaption>CSV保存と購入結果の表示. <a href="/assets/slap-squad/shop-sequence-ja.svg">原寸で表示</a>
 </figcaption>

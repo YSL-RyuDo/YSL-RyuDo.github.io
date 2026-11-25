@@ -58,9 +58,9 @@
 <p>I implemented the C++ server and Unity weapon behaviors, and connected movement, balloon interactions, match results and purchase feedback.</p>
 <p class="revision-note">October 2026 follow-up: room delivery and TCP framing fixes, IOCP output, startup attack-table cache, UML, reproducible measurements and gameplay clips.</p>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB">Unity, BNB</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer">C++, BnBServer</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/README.md">Full engineering notes</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad">Unity, Slap Squad</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer">C++, Slap Squad Server</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/README.md">Full engineering notes</a>
 </div>
 </div>
 <nav class="case-reading-nav"><a href="#state-safety">Storage and room safety</a>
@@ -86,7 +86,7 @@
 <figcaption>Sword attack</figcaption>
 </figure>
 </section>
-<section class="case-section" id="state-safety"><h2>CSV transactions and room lifetime</h2><p>A 32-client purchase test exposed a persistence failure: all four item categories wrote through the same temp.csv. Different requests could replace or remove one another’s temporary file. The follow-up change keeps CSV storage but commits a purchase’s balance and ownership together.</p><p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p><p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p><p>The real server purchase test sends two requests per account, with 32 accounts split across character, balloon, emote and icon purchases. Correct persisted balance and ownership: 0/32 before, 32/32 after, in this reproduction. The unit harness also checks 96 concurrent profile/stat commits, 16 simultaneous purchase attempts, seven-file registration, precommit failure rollback and recovery after process termination between two replacements. The room test completes 12 matches while another room moves, checks one reward and one GAME_END per match, and churns 30 temporary rooms.</p><h3>Latency retest</h3><p>The median p95 increased at all three loads. At 64 connections, median CPU fell from 9.22% to 7.65%; at 8 and 32 it increased. Thread counts stayed at 13, 37 and 69. All 624,000 expected deliveries arrived with no cross-room delivery or duplication. This change fixes state correctness; it does not establish a general latency improvement.</p><p>The same MOVE relay harness, Windows host, Release x64, 4 clients per room and 20 messages/s/client are used for both versions. Each load has five runs per version, with alternating order, 2 s warm-up, 10 s measurement and 2 s drain. Latency includes sender and observer event-loop scheduling. CPU 100% means one logical core. This is a waiting-room relay test without Unity rendering or battle simulation.</p><div class="table-scroll"><table><thead><tr><th>Connections</th><th>p95 ms, before / after</th><th>CPU %, before / after</th><th>Peak threads, before / after</th><th>Peak RSS MiB, before / after</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-en.svg"><img alt="Latency retest" height="260" loading="lazy" src="/assets/slap-squad/state-retest-en.svg" width="792"/></a><figcaption>Median of five runs per version. Lower p95 and CPU are better. Each dot is one run.</figcaption></figure><p>The earlier p95 increase came from three runs per condition and does not identify a cause. A separate 32-client diagnostic changed only server TCP_NODELAY; it did not demonstrate an improvement. Starting the first overlapped send on the receive thread reduced one worker handoff but increased CPU in the pilot, so it was discarded. The final implementation retains IOCP batching. The retest below reports every run and the median rather than attributing all variation to the server.</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/STATE_SAFETY.md">Code and test data</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/BnBServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
+<section class="case-section" id="state-safety"><h2>CSV transactions and room lifetime</h2><p>A 32-client purchase test exposed a persistence failure: all four item categories wrote through the same temp.csv. Different requests could replace or remove one another’s temporary file. The follow-up change keeps CSV storage but commits a purchase’s balance and ownership together.</p><p>A unique temporary filename alone would leave lost updates and a balance/ownership split. A shared_ptr to a mutable Room alone would prevent deletion but not data races. The selected transaction boundary covers one logical account operation; room snapshots cover one consistent read. MOVE does not acquire the user persistence lock.</p><p>Room lookups now return immutable copies made under the room lock. Team changes and death registration mutate state only inside RoomManager. Death registration claims the result once per match, while the ready barrier clears match state before releasing its lock. A failed reward commit releases the claim for retry, checking the match generation. Broadcasts retain their recipients before releasing the room and client locks; queue insertion occurs after both locks are released.</p><p>The real server purchase test sends two requests per account, with 32 accounts split across character, balloon, emote and icon purchases. Correct persisted balance and ownership: 0/32 before, 32/32 after, in this reproduction. The unit harness also checks 96 concurrent profile/stat commits, 16 simultaneous purchase attempts, seven-file registration, precommit failure rollback and recovery after process termination between two replacements. The room test completes 12 matches while another room moves, checks one reward and one GAME_END per match, and churns 30 temporary rooms.</p><h3>Latency retest</h3><p>The median p95 increased at all three loads. At 64 connections, median CPU fell from 9.22% to 7.65%; at 8 and 32 it increased. Thread counts stayed at 13, 37 and 69. All 624,000 expected deliveries arrived with no cross-room delivery or duplication. This change fixes state correctness; it does not establish a general latency improvement.</p><p>The same MOVE relay harness, Windows host, Release x64, 4 clients per room and 20 messages/s/client are used for both versions. Each load has five runs per version, with alternating order, 2 s warm-up, 10 s measurement and 2 s drain. Latency includes sender and observer event-loop scheduling. CPU 100% means one logical core. This is a waiting-room relay test without Unity rendering or battle simulation.</p><div class="table-scroll"><table><thead><tr><th>Connections</th><th>p95 ms, before / after</th><th>CPU %, before / after</th><th>Peak threads, before / after</th><th>Peak RSS MiB, before / after</th></tr></thead><tbody><tr><td>8</td><td>11.64 / 13.14</td><td>1.56 / 2.03</td><td>13 / 13</td><td>11.45 / 11.49</td></tr><tr><td>32</td><td>14.07 / 15.18</td><td>3.43 / 3.75</td><td>37 / 37</td><td>12.83 / 12.94</td></tr><tr><td>64</td><td>17.55 / 18.03</td><td>9.22 / 7.65</td><td>69 / 69</td><td>14.50 / 14.67</td></tr></tbody></table></div><figure class="uml"><a href="/assets/slap-squad/state-retest-en.svg"><img alt="Latency retest" height="260" loading="lazy" src="/assets/slap-squad/state-retest-en.svg" width="792"/></a><figcaption>Median of five runs per version. Lower p95 and CPU are better. Each dot is one run.</figcaption></figure><p>The earlier p95 increase came from three runs per condition and does not identify a cause. A separate 32-client diagnostic changed only server TCP_NODELAY; it did not demonstrate an improvement. Starting the first overlapped send on the receive thread reduced one worker handoff but increased CPU in the pilot, so it was discarded. The final implementation retains IOCP batching. The retest below reports every run and the median rather than attributing all variation to the server.</p><div class="evidence-links"><a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/STATE_SAFETY.md">Code and test data</a><a href="/assets/slap-squad/slap-squad-state-20261021.zip">CSV, JSON, manifests (ZIP)</a><a href="https://github.com/YSL-RyuDo/SlapSquadServer/compare/8a6245d1a58fdbed77fc62b48eb6984a3af7f017...3e3dcef826fa09c4349038ca0b81ccc97f2c63a6">Git diff</a></div></section><section class="case-section" id="iocp">
 <h2>Reducing output-thread cost without losing slow-reader isolation</h2>
 <p>The first bounded-queue fix prevented a stalled reader from blocking other rooms, but created a writer thread for every connection. I replaced those writers with one shared IOCP output worker. Receive threads remain per connection.</p>
 <p>At 64 connections, the median observed peak thread count fell from 132 to 69, and server CPU from 12.03% to 7.34% of one logical core. Median peak RSS fell from 16.03 to 14.49 MiB. The p95 median increased from 14.81 to 15.35 ms. This is a reduction in resource cost, not a claim that every response became faster.</p>
@@ -149,10 +149,10 @@
 <p>Validation: 7 output unit checks, 8 socket framing/room checks, 5 connection-lifecycle checks, and a real-socket HIT check delivering 28 expected damage responses without cross-room delivery. Startup-cache and standalone C# framing tests also passed. The 18 MOVE runs had no missing, duplicated, malformed or cross-room messages. End-to-end Unity gameplay and long-duration soak tests remain separate work.</p>
 <p>CSV and room safety were addressed in the later state-safety change. The IOCP numbers above remain the original three-run experiment.</p>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/IOCP.md">Implementation and reproduction</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-iocp">Raw measurements</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/IOCP.md">Implementation and reproduction</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/tree/main/docs/engineering/measurements/2026-10-21-iocp">Raw measurements</a>
 <a href="/assets/slap-squad/slap-squad-iocp-20261021.zip">ZIP, 40 runs</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/AUDIT.md">Code audit and remaining work</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/AUDIT.md">Code audit and remaining work</a>
 </div>
 </section>
 <details class="historical-stage">
@@ -236,9 +236,9 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>Six deterministic tests exercise forced partial writes, four concurrent producers, byte and frame limits, batching and send failure. In the controlled batching test, 1,000 two-byte frames reached the injected sender in two calls, compared with 1,000 calls for a one-call-per-frame model. This counts sender invocations, not network packets, throughput or FPS. Thirteen real-socket regression checks cover the original eight framing/room cases plus invalid purchase numbers, logout/relogin, 20 QUIT/EOF cycles and four simultaneous disconnects. The churn checks returned to the initial thread count.</p>
 <p>CSV and room safety were addressed in the later state-safety change. The IOCP numbers above remain the original three-run experiment.</p>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/OUTPUT_QUEUE.md">Output queue design and reproduction</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/compare/737a92c397adb4320cf439d99d148362ce1ca090...9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e">Git diff</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21-output-queue">12-run raw data and build provenance</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/OUTPUT_QUEUE.md">Output queue design and reproduction</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/compare/737a92c397adb4320cf439d99d148362ce1ca090...9e9110727ff5fa8c4cd016f9a55efe4aa93ecc4e">Git diff</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/tree/main/docs/engineering/measurements/2026-10-21-output-queue">12-run raw data and build provenance</a>
 <a href="/assets/slap-squad/slap-squad-output-queue-20261021.zip">ZIP, 12 runs</a>
 </div>
 </section>
@@ -255,8 +255,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.h">Server.h</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.cpp">AcceptClients</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.h">Server.h</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/8a6245d1a58fdbed77fc62b48eb6984a3af7f017/TeamOFYServer/Server.cpp">AcceptClients</a>
 </div>
 </section>
 <section class="case-section" id="gameplay-authority">
@@ -272,8 +272,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/blob/1804bb35a73c911c475567f01c7af0907bf2ab93/Assets/Script/Game/WeaponSystem.cs">WeaponSystem.cs</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/1804bb35a73c911c475567f01c7af0907bf2ab93/Assets/Script/Game/BalloonSystem.cs">BalloonSystem.cs</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/1804bb35a73c911c475567f01c7af0907bf2ab93/Assets/Script/Game/WeaponSystem.cs">WeaponSystem.cs</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/1804bb35a73c911c475567f01c7af0907bf2ab93/Assets/Script/Game/BalloonSystem.cs">BalloonSystem.cs</a>
 </div>
 </section>
 <section class="case-section" id="room-lifecycle">
@@ -301,7 +301,7 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/commit/737a92c397adb4320cf439d99d148362ce1ca090">Source change</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/commit/737a92c397adb4320cf439d99d148362ce1ca090">Source change</a>
 </div>
 </section>
 <section class="case-section" id="regression">
@@ -309,8 +309,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>Eight regression scenarios pass on the patched server: room isolation, a split message, several coalesced messages, a complete message followed by a partial one, a forged nickname, an invalid number, a non-finite number and an oversized frame. Invalid-number checks also send a subsequent valid message to verify continued progress.</p>
 <p>The baseline also parsed coalesced messages, but delivered them outside the room. The regression assertions check both parsing and recipients. The tests cover this receive and MOVE path, not every account, shop or combat command.</p>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/tools/benchmark/regression.py">regression.py</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/measurements/2026-10-21/regression-candidate.json">8 / 8</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/tools/benchmark/regression.py">regression.py</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/measurements/2026-10-21/regression-candidate.json">8 / 8</a>
 </div>
 </section>
 <section class="case-section" id="performance">
@@ -385,9 +385,9 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>The original 64-client runs had 12, 867 and 57 intended deliveries still missing after the drain window. Its reported latency percentiles cover received samples only. The patched runs received all 38,400 intended deliveries per run, with no cross-room deliveries. All 12 patched load runs had zero missing, duplicate, malformed or cross-room responses.</p>
 <p>With only one room, p95 was 12.22 ms before and 13.42 ms after: this experiment does not show a latency improvement at that load. The generator shares the machine; at 64 connections its baseline CPU approached one core, and patched scheduling lag p99 reached about 21 ms in one run. The large-load result demonstrates the cost of excess fan-out in this setup. It does not isolate server processing time or establish production capacity.</p>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21">Raw measurements and environment</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/tree/main/docs/engineering/measurements/2026-10-21">Raw measurements and environment</a>
 <a href="/assets/slap-squad/slap-squad-measurements-20261021.zip">ZIP, 24 runs</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/README.md#reproduction">Reproduce the experiment</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/README.md#reproduction">Reproduce the experiment</a>
 </div>
 </section>
 <section class="case-section" id="confirmed-shop-ui">
@@ -404,8 +404,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 </figcaption>
 </figure>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/commit/57cedd2e5c3b0dbbb7ea51b336602cc339630cea">ShopUI, 57cedd2</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/3e3dcef826fa09c4349038ca0b81ccc97f2c63a6/TeamOFYServer/ClientHandler.cpp">BUY_ICON</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/57cedd2e5c3b0dbbb7ea51b336602cc339630cea">ShopUI, 57cedd2</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/3e3dcef826fa09c4349038ca0b81ccc97f2c63a6/TeamOFYServer/ClientHandler.cpp">BUY_ICON</a>
 </div>
 </section>
 <section class="case-section full-scope" id="full-scope">
@@ -431,12 +431,12 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <details class="source-details">
 <summary>Source and my changes</summary>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/WeaponSystem.cs">WeaponSystem.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/Weapon/Arrow.cs">Arrow.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/Weapon/Sword.cs">Sword.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/WeaponSystem.cs">WeaponSystem.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/Weapon/Arrow.cs">Arrow.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/Weapon/Sword.cs">Sword.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
 </div>
 </details>
 </div>
@@ -455,8 +455,8 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <details class="source-details">
 <summary>Source and my changes</summary>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/LocalPlayerController.cs">LocalPlayerController.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/LocalPlayerController.cs">LocalPlayerController.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
 </div>
 </details>
 </div>
@@ -475,10 +475,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <details class="source-details">
 <summary>Source and my changes</summary>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/BalloonSystem.cs">BalloonSystem.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/95b28f22b7e88ed2c801e6d47a61ca573bcbc8a5">My change 95b28f2 ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/MapSystem.cs">MapSystem.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/95b28f22b7e88ed2c801e6d47a61ca573bcbc8a5">My change 95b28f2 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/BalloonSystem.cs">BalloonSystem.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/95b28f22b7e88ed2c801e6d47a61ca573bcbc8a5">My change 95b28f2 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/MapSystem.cs">MapSystem.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/95b28f22b7e88ed2c801e6d47a61ca573bcbc8a5">My change 95b28f2 ↗</a>
 </div>
 </details>
 </div>
@@ -497,10 +497,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <details class="source-details">
 <summary>Source and my changes</summary>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Room/RoomSystem.cs">RoomSystem.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/be42bb99ced515ad702e9a15e9d95bd5e029839c">My change be42bb9 ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Network/NetworkConnector.cs">NetworkConnector.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Room/RoomSystem.cs">RoomSystem.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/be42bb99ced515ad702e9a15e9d95bd5e029839c">My change be42bb9 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Network/NetworkConnector.cs">NetworkConnector.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/c79844d425e5c81e1c9549885e29deeeb66515cf">My change c79844d ↗</a>
 </div>
 </details>
 </div>
@@ -519,10 +519,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <details class="source-details">
 <summary>Source and my changes</summary>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/GameSystem.cs">GameSystem.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/eb6a7660b4f690e0d46a7a3e75c50c744d40f745">My change eb6a766 ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/EmoticonSystem.cs">EmoticonSystem.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/576f51272b078731e71e882afce04ce8ae164ac3">My change 576f512 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/GameSystem.cs">GameSystem.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/eb6a7660b4f690e0d46a7a3e75c50c744d40f745">My change eb6a766 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Game/EmoticonSystem.cs">EmoticonSystem.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/576f51272b078731e71e882afce04ce8ae164ac3">My change 576f512 ↗</a>
 </div>
 </details>
 </div>
@@ -541,10 +541,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <details class="source-details">
 <summary>Source and my changes</summary>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/d2a360c07276ec057a92d1361e8ff84de743520c/TeamOFYServer/Server.cpp">Server.cpp (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/commit/e41da66566252a105da68d98087198e632c0e9b7">My change e41da66 ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Shop/ShopUI.cs">ShopUI.cs (main) ↗</a>
-<a href="https://github.com/YSL-RyuDo/BNB/commit/57cedd2e5c3b0dbbb7ea51b336602cc339630cea">My change 57cedd2 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/d2a360c07276ec057a92d1361e8ff84de743520c/TeamOFYServer/Server.cpp">Server.cpp (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/commit/e41da66566252a105da68d98087198e632c0e9b7">My change e41da66 ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/blob/8a3defa6001cf741eceb322f11d7c8c6f7dd9bd7/Assets/Script/Shop/ShopUI.cs">ShopUI.cs (main) ↗</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquad/commit/57cedd2e5c3b0dbbb7ea51b336602cc339630cea">My change 57cedd2 ↗</a>
 </div>
 </details>
 </div>
@@ -556,9 +556,9 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <p>The user-state mutex serializes account writes, and each transaction snapshots the user vectors and rewrites affected CSVs. This favors correctness and compatibility over high write throughput. These tests do not establish database-scale capacity, recovery from disk corruption, or match restoration after a server restart. Client-reported hits still need independent server validation. Full process shutdown and Unity allocation profiling remain separate work.</p></section>
 <section class="case-section" id="world-and-pricing">
 <h2>From implementation to a pricing question</h2>
-<p>Deciding prices for this game motivated my separate CNN consumption-pattern simulation. I presented the research at I2P-CON, then refined it for the CISC-W 2025 poster. The CNN study is not deployed inference in this game server.</p>
+<p>Deciding prices for this game motivated my separate CNN consumption-pattern simulation. I presented the research at I2P CON, then refined it for the CISC W 2025 poster. The CNN study is not deployed inference in this game server.</p>
 <div class="evidence-links">
-<a href="/en/research/cisc/">CISC-W 2025</a>
+<a href="/en/research/cisc/">CISC W 2025</a>
 </div>
 </section>
 <details class="more-demos" id="more-demos">
@@ -693,10 +693,10 @@ while (offset &lt; batch.size() &amp;&amp; !stopping_) {
 <section class="case-section">
 <h2>Source, test data and reproduction</h2>
 <div class="evidence-links">
-<a href="https://github.com/YSL-RyuDo/BnBServer/blob/main/docs/engineering/README.md">Full engineering notes</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/measurements/2026-10-21">Raw measurements and environment</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/docs/engineering/diagrams">PlantUML</a>
-<a href="https://github.com/YSL-RyuDo/BnBServer/tree/main/tools/benchmark">Benchmark</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/blob/main/docs/engineering/README.md">Full engineering notes</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/tree/main/docs/engineering/measurements/2026-10-21">Raw measurements and environment</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/tree/main/docs/engineering/diagrams">PlantUML</a>
+<a href="https://github.com/YSL-RyuDo/SlapSquadServer/tree/main/tools/benchmark">Benchmark</a>
 </div>
 </section>
 </div>

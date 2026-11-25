@@ -1,0 +1,30 @@
+.research-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.publication-poster { margin: 24px 0; }
+.poster-trigger { display: inline-flex; flex-direction: column; gap: 10px; max-width: 100%; padding: 14px; border: 1px solid #cfcec6; background: #fff; color: #292923; text-decoration: none; }
+.poster-trigger img { display: block; width: auto; height: min(360px, 48vh); max-width: 100%; object-fit: contain; }
+.poster-trigger span { font-size: 14px; text-align: center; text-decoration: underline; text-underline-offset: 4px; }
+.publication-poster figcaption { margin-top: 10px; font-size: 14px; color: #5b5b55; }
+.research-card .poster-trigger img { height: 280px; }
+.research-card .publication-poster { margin-bottom: 0; }
+.poster-dialog { box-sizing: border-box; width: min(1100px, 96vw); max-width: 96vw; max-height: 94dvh; padding: 0; border: 1px solid #85857b; background: #f6f5f0; color: #292923; }
+.poster-dialog::backdrop { background: rgb(0 0 0 / 70%); }
+.poster-toolbar { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid #cfcec6; }
+.poster-toolbar strong { flex: 1; font-size: 15px; }
+.poster-toolbar button { flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 1px solid #85857b; background: white; color: #292923; cursor: pointer; font: inherit; font-size: 14px; }
+.poster-viewport { overflow: auto; max-height: calc(94dvh - 80px); padding: 12px; text-align: center; }
+.poster-image { display: inline-block; width: auto; height: auto; max-width: 100%; max-height: calc(94dvh - 110px); vertical-align: top; }
+.poster-viewport.is-zoomed { text-align: left; }
+.poster-viewport.is-zoomed .poster-image { width: 1600px; max-width: none; max-height: none; }
+.research-table-scroll { overflow-x: auto; }
+.research-table-scroll table { width: 100%; border-collapse: collapse; }
+.research-table-scroll th, .research-table-scroll td { padding: 14px; border: 1px solid #cfcec6; text-align: left; vertical-align: top; }
+.research-table-scroll th { background: #efeee8; }
+@media (max-width: 700px) {
+  .research-grid { grid-template-columns: 1fr; }
+  .poster-toolbar { flex-wrap: wrap; }
+  .poster-toolbar strong { flex-basis: 100%; }
+  .poster-viewport { max-height: calc(94dvh - 130px); }
+  .poster-image { max-height: calc(94dvh - 155px); }
+  .research-table-scroll table { min-width: 580px; }
+}
+@media print { .poster-dialog, .publication-poster { display: none; } }

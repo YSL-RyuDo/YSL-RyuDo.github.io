@@ -234,3 +234,5 @@ a:focus-visible,button:focus-visible{outline-color:#555}
 .evidence-scope{font-size:14px;line-height:1.85;padding:14px 18px;border-left:3px solid #527e74;background:#f0f4f1}
 @media(max-width:768px){.weapon-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.weapon-evidence-grid{grid-template-columns:1fr}}
+
+@media print{html,body,#main{background:#fff}.resume .conference{margin-bottom:14px}.resume section{margin-top:16px}.resume .resume-project{margin-bottom:12px}.resume p{margin-bottom:6px}.resume h3{margin-bottom:10px}.resume .eyebrow{margin-bottom:8px}.resume{background:#fff}.resume p,.resume li{line-height:1.35}.resume .conference p{margin-bottom:3px}.resume section>h2{margin-bottom:8px}}
